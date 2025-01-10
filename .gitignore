@@ -1,0 +1,45 @@
+# General build artifacts
+**/bin/
+**/obj/
+*.dll
+*.exe
+*.pdb
+
+# ASP.NET specific
+wwwroot/
+appsettings*.json
+!.appsettings.Development.json
+
+# Docker files
+Dockerfile
+docker-compose.yml
+docker-compose.*.yml
+
+# Logs and crash reports
+*.log
+logs/
+tracefiles/
+
+# IDE specific
+.vscode/
+.vs/
+.idea/
+_ReSharper.Caches/
+
+# NuGet packages
+*.nupkg
+.nuget/
+packages/
+project.lock.json
+project.fragment.lock.json
+
+# OS generated files
+Thumbs.db
+*.DS_Store
+
+# Testing related files
+coverage/
+TestResults/
+*.coverage
+*.coveragexml
+*.testlog
