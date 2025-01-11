@@ -10,7 +10,7 @@ namespace PetLuvSystem.SharedLibrary.DependencyInjections
     public static class SharedServiceContainer
     {
         public static IServiceCollection AddSharedServices<TContext>
-            (this IServiceCollection services, IConfiguration config, string fileName) where TContext : DbContext
+            (this IServiceCollection services, IConfiguration config) where TContext : DbContext
         {
             services.AddDbContext<TContext>(options =>
                 options.UseSqlServer(config.GetConnectionString("Default"),
@@ -21,10 +21,6 @@ namespace PetLuvSystem.SharedLibrary.DependencyInjections
                 .MinimumLevel.Information()
                 .WriteTo.Debug()
                 .WriteTo.Console()
-                .WriteTo.File(path: $"{fileName}-.txt",
-                    restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Information,
-                    outputTemplate: "{Timestamp: yyyy-MM-dd HH:mm:ss.fff zzz} [{Level: u3}] {message: lj}{NewLine}{Exception}",
-                    rollingInterval: RollingInterval.Day)
                 .CreateLogger();
 
             JWTAuthenticationScheme.AddJwtAuthenticationScheme(services, config);
@@ -36,7 +32,7 @@ namespace PetLuvSystem.SharedLibrary.DependencyInjections
         {
             app.UseMiddleware<GlobalException>();
 
-            app.UseMiddleware<ListenToOnlyApiGateway>();
+            //app.UseMiddleware<ListenToOnlyApiGateway>();
 
             return app;
         }

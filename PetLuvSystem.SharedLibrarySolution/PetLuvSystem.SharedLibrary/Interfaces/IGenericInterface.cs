@@ -6,10 +6,10 @@ namespace PetLuvSystem.SharedLibrary.Interfaces
     public interface IGenericInterface<T> where T : class
     {
         Task<Response> CreateAsync(T entity);
-        Task<Response> UpdateAsync(T entity);
+        Task<Response> UpdateAsync(Guid id, T entity);
         Task<Response> DeleteAsync(Guid id);
-        Task<IEnumerable<T>> GetAllAsync();
-        Task<T> GetByIdAsync(Guid id);
-        Task<T> GetByAsync(Expression<Func<T, bool>> predicate);
+        Task<Response> GetAllAsync();
+        Task<Response> GetByIdAsync(Guid id);
+        Task<Response> GetByAsync(Expression<Func<T, bool>> predicate);
     }
 }
