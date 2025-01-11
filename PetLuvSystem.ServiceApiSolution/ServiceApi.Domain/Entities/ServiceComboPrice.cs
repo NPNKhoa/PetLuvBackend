@@ -1,0 +1,12 @@
+﻿namespace ServiceApi.Domain.Entities
+{
+    public class ServiceComboPrice
+    {
+        public Guid ServiceComboId { get; set; }
+        public Guid BreedId { get; set; }
+        public string? WeightRange { get; set; }
+        public decimal ComboPrice { get; set; }
+
+        public virtual ServiceCombo? ServiceCombo { get; set; }
+    }
+}
