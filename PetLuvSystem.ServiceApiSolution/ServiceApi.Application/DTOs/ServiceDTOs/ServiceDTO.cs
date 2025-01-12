@@ -1,6 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ServiceApi.Application.DTOs.ServiceVariantDTOs;
+using ServiceApi.Application.DTOs.WalkDogServiceVariantDTOs;
+using System.ComponentModel.DataAnnotations;
 
-namespace ServiceApi.Application.DTOs.ServiceDTO
+namespace ServiceApi.Application.DTOs.ServiceDTOs
 {
     public record ServiceDTO(
         [Required] Guid ServiceId,
@@ -14,6 +16,8 @@ namespace ServiceApi.Application.DTOs.ServiceDTO
         bool IsVisible,
         [Required] Guid ServiceTypeId,
         string? ServiceTypeName,
-        ICollection<string>? ServiceImageUrls
+        ICollection<string>? ServiceImageUrls,
+        ICollection<ServiceVariantDTO>? ServicePrices,
+        ICollection<WalkDogServiceVariantDTO>? WalkDogServicePrices
     );
 }

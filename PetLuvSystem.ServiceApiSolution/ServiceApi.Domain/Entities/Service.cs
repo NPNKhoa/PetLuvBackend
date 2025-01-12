@@ -15,7 +15,7 @@ namespace ServiceApi.Domain.Entities
 
         public virtual ICollection<ServiceImage>? ServiceImages { get; set; }
         public virtual ICollection<ServiceComboMapping>? ServiceComboMappings { get; set; }
-        public virtual ICollection<ServicePrice>? ServicePrices { get; set; }
-        public virtual ICollection<WalkDogServicePrice>? WalkDogServicePrices { get; set; }
+        public virtual ICollection<ServiceVariant>? ServiceVariants { get; set; }
+        public virtual ICollection<WalkDogServiceVariant>? WalkDogServiceVariants { get; set; }
     }
 }

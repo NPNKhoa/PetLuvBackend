@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 
 namespace ServiceApi.Infrastructure.Repositories
 {
-    public class ServicePriceRepository : IServicePrice
+    public class ServiceVariantRepository : IServicePrice
     {
         public Task<Response> CreateAsync(IServicePrice entity)
         {

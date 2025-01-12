@@ -1,5 +1,8 @@
 ﻿using ServiceApi.Application.DTOs.ServiceComboDTOs;
 using ServiceApi.Application.DTOs.ServiceComboPriceDTOs;
+using ServiceApi.Application.DTOs.ServiceDTOs;
+using ServiceApi.Application.DTOs.ServiceVariantDTOs;
+using ServiceApi.Application.DTOs.WalkDogServiceVariantDTOs;
 using ServiceApi.Domain.Entities;
 
 namespace ServiceApi.Application.DTOs.Conversions
@@ -12,7 +15,7 @@ namespace ServiceApi.Application.DTOs.Conversions
             ServiceComboName = dto.ServiceComboName,
             ServiceComboDesc = dto.ServiceComboDesc,
             IsVisible = dto.IsVisible,
-            ServiceComboPrices = dto.ComboPrices?.Select(p => new ServiceComboPrice
+            ServiceComboPrices = dto.ComboPrices?.Select(p => new ServiceComboVariant
             {
                 ServiceComboId = dto.ServiceComboId,
                 BreedId = p.BreedId,
@@ -56,16 +59,29 @@ namespace ServiceApi.Application.DTOs.Conversions
                         s.ComboPrice,
                         null
                     )).ToList() ?? new List<ServiceComboPriceDTO>(),
-                    serviceCombo.ServiceComboMappings?.Select(m => new ServiceDTO.ServiceDTO
+                    serviceCombo.ServiceComboMappings?.Select(m => new ServiceDTO
                     (
-                        m.Service.ServiceId,
+                        m.Service!.ServiceId,
                         m.Service.ServiceName,
                         m.Service.ServiceDesc,
                         m.Service.IsVisible,
                         m.Service.ServiceTypeId,
                         m.Service.ServiceType.ServiceTypeName,
-                        m.Service.ServiceImages?.Select(p => p.ServiceImagePath).ToList()
-                    )).ToList() ?? new List<ServiceDTO.ServiceDTO>(),
+                        m.Service.ServiceImages?.Select(p => p.ServiceImagePath).ToList()!,
+                        m.Service.ServiceVariants?.Select(p => new ServiceVariantDTO
+                        (
+                            p.ServiceId,
+                            p.BreedId,
+                            p.PetWeightRange!,
+                            p.Price
+                        )).ToList(),
+                        m.Service.WalkDogServiceVariants?.Select(p => new WalkDogServiceVariantDTO
+                        (
+                            p.ServiceId,
+                            p.PricePerPeriod,
+                            p.Service
+                        )).ToList()
+                    )).ToList() ?? new List<ServiceDTO>(),
                     serviceCombo.IsVisible
                 );
                 return (singleServiceCombo, null);
@@ -86,7 +102,7 @@ namespace ServiceApi.Application.DTOs.Conversions
                         s.ComboPrice,
                         null
                     )).ToList() ?? new List<ServiceComboPriceDTO>(),
-                    p.ServiceComboMappings?.Select(m => new ServiceDTO.ServiceDTO
+                    p.ServiceComboMappings?.Select(m => new ServiceDTO
                     (
                         m.Service.ServiceId,
                         m.Service.ServiceName,
@@ -94,8 +110,21 @@ namespace ServiceApi.Application.DTOs.Conversions
                         m.Service.IsVisible,
                         m.Service.ServiceTypeId,
                         m.Service.ServiceType.ServiceTypeName,
-                        m.Service.ServiceImages?.Select(p => p.ServiceImagePath).ToList()
-                    )).ToList() ?? new List<ServiceDTO.ServiceDTO>(),
+                        m.Service.ServiceImages?.Select(p => p.ServiceImagePath).ToList()!,
+                        m.Service.ServiceVariants?.Select(p => new ServiceVariantDTO
+                        (
+                            p.ServiceId,
+                            p.BreedId,
+                            p.PetWeightRange!,
+                            p.Price
+                        )).ToList(),
+                        m.Service.WalkDogServiceVariants?.Select(p => new WalkDogServiceVariantDTO
+                        (
+                            p.ServiceId,
+                            p.PricePerPeriod,
+                            p.Service
+                        )).ToList()
+                    )).ToList() ?? new List<ServiceDTO>(),
                     p.IsVisible
                 )).ToList();
 

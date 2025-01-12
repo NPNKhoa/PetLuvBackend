@@ -1,6 +1,6 @@
 ﻿namespace ServiceApi.Domain.Entities
 {
-    public class ServiceComboPrice
+    public class ServiceComboVariant
     {
         public Guid ServiceComboId { get; set; }
         public Guid BreedId { get; set; }

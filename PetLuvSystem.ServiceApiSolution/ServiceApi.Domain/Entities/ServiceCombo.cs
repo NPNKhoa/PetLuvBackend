@@ -11,6 +11,6 @@ namespace ServiceApi.Domain.Entities
         public bool IsVisible { get; set; }
 
         public virtual ICollection<ServiceComboMapping>? ServiceComboMappings { get; set; }
-        public virtual ICollection<ServiceComboPrice>? ServiceComboPrices { get; set; }
+        public virtual ICollection<ServiceComboVariant>? ServiceComboPrices { get; set; }
     }
 }

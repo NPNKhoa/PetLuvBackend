@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 
 namespace ServiceApi.Infrastructure.Repositories
 {
-    public class WalkDogServicePriceRepository : IWalkDogServicePrice
+    public class WalkDogServiceVariantRepository : IWalkDogServicePrice
     {
         public Task<Response> CreateAsync(IWalkDogServicePrice entity)
         {

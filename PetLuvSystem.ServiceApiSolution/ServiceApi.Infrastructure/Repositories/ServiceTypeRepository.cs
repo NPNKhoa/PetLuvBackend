@@ -17,8 +17,6 @@ namespace ServiceApi.Infrastructure.Repositories
             {
                 var existingServiceType = await GetByAsync(x => x.ServiceTypeName!.Equals(entity.ServiceTypeName));
 
-                Console.WriteLine(existingServiceType);
-
                 if (existingServiceType.Data is not null)
                 {
                     return new Response(false, 409, $"A service type with this name {entity.ServiceTypeName} already exist");

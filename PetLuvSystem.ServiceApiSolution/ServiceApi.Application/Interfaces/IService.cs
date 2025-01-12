@@ -5,5 +5,6 @@ namespace ServiceApi.Application.Interfaces
 {
     public interface IService : IGenericInterface<Service>
     {
+        public Task<Service> FindServiceById(Guid id);
     }
 }

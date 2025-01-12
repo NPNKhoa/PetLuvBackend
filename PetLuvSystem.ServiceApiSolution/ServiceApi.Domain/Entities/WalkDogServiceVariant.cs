@@ -1,6 +1,6 @@
 ﻿namespace ServiceApi.Domain.Entities
 {
-    public class WalkDogServicePrice
+    public class WalkDogServiceVariant
     {
         public Guid ServiceId { get; set; }
         public decimal PricePerPeriod { get; set; }
