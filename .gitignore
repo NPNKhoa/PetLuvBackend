@@ -43,3 +43,6 @@ TestResults/
 *.coverage
 *.coveragexml
 *.testlog
+
+# Except the Logs directory in SharedLibrary
+!PetLuvSystem.SharedLibrarySolution/PetLuvSystem.SharedLibrary/Logs/
