@@ -16,7 +16,7 @@ namespace ServiceApi.Infrastructure.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<Response> GetAllAsync()
+        public Task<Response> GetAllAsync(int pageIndex, int pageSize)
         {
             throw new NotImplementedException();
         }

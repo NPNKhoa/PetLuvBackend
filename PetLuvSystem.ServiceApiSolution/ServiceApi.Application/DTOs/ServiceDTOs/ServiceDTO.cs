@@ -14,10 +14,9 @@ namespace ServiceApi.Application.DTOs.ServiceDTOs
         string? ServiceDesc,
         [Required, Range(1, int.MaxValue)]
         bool IsVisible,
-        [Required] Guid ServiceTypeId,
         string? ServiceTypeName,
         ICollection<string>? ServiceImageUrls,
-        ICollection<ServiceVariantDTO>? ServicePrices,
-        ICollection<WalkDogServiceVariantDTO>? WalkDogServicePrices
+        ICollection<ServiceVariantDTO>? ServiceVariants,
+        ICollection<WalkDogServiceVariantDTO>? WalkDogServiceVariants
     );
 }

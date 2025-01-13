@@ -5,6 +5,6 @@
         Guid ServiceId,
         Guid BreedId,
         string PetWeightRange,
-        decimal ServicePrice
+        decimal Price
     );
 }

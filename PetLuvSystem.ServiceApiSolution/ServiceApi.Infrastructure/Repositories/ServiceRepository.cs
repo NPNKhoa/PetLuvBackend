@@ -80,13 +80,23 @@ namespace ServiceApi.Infrastructure.Repositories
             }
         }
 
-        public async Task<Response> GetAllAsync()
+        public async Task<Response> GetAllAsync(int pageIndex, int pageSize)
         {
             try
             {
-                var services = await context.Services.AsNoTracking().ToListAsync();
+                var query = context.Services
+                    .AsNoTracking()
+                    .Include(s => s.ServiceType)
+                    .Include(s => s.ServiceImages);
 
-                if (services is null || !services.Any())
+                var totalCount = await query.CountAsync();
+
+                var services = await query
+                    .Skip((pageIndex - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                if (services is null || services.Count == 0)
                 {
                     return new Response(false, 404, "Can not find any service");
                 }
@@ -95,7 +105,16 @@ namespace ServiceApi.Infrastructure.Repositories
 
                 return new Response(true, 200, "Service retrived successfully")
                 {
-                    Data = responseData
+                    Data = new
+                    {
+                        data = responseData,
+                        meta = new
+                        {
+                            totalPage = Math.Ceiling((double)totalCount / pageSize),
+                            pageIndex,
+                            pageSize
+                        }
+                    }
                 };
             }
             catch (Exception ex)
@@ -109,7 +128,14 @@ namespace ServiceApi.Infrastructure.Repositories
         {
             try
             {
-                var service = await context.Services.Where(predicate).AsNoTracking().FirstOrDefaultAsync();
+                var service = await context.Services
+                    .Where(predicate)
+                    .AsNoTracking()
+                    .Include(s => s.ServiceType)
+                    .Include(s => s.ServiceImages)
+                    .Include(s => s.ServiceVariants)
+                    .Include(s => s.WalkDogServiceVariants)
+                    .FirstOrDefaultAsync();
 
                 if (service is null)
                 {
@@ -141,6 +167,8 @@ namespace ServiceApi.Infrastructure.Repositories
                     return new Response(false, 404, $"Can not find any service with id {id}");
                 }
 
+                context.Entry(service).State = EntityState.Detached;
+
                 var (singleService, _) = ServiceConversion.FromEntity(service, null);
 
                 return new Response(true, 200, "Service retrived successfully")
@@ -166,27 +194,43 @@ namespace ServiceApi.Infrastructure.Repositories
                     return new Response(false, 404, $"Can not find service with id {id}");
                 }
 
-                var isChanged =
-                    existingService.ServiceName != entity.ServiceName
-                    || existingService.ServiceDesc != entity.ServiceDesc
-                    || existingService.IsVisible != entity.IsVisible
-                    || existingService.ServiceTypeId != entity.ServiceTypeId;
+                bool hasChanges = false;
 
-                if (isChanged)
+                if (entity.ServiceName is not null && existingService.ServiceName != entity.ServiceName)
                 {
                     existingService.ServiceName = entity.ServiceName;
-                    existingService.ServiceDesc = entity.ServiceDesc;
-                    existingService.IsVisible = entity.IsVisible;
-                    existingService.ServiceTypeId = entity.ServiceTypeId;
+                    hasChanges = true;
+                }
 
-                    context.Services.Update(existingService);
+                if (entity.ServiceDesc is not null && existingService.ServiceDesc != entity.ServiceDesc)
+                {
+                    existingService.ServiceDesc = entity.ServiceDesc;
+                    hasChanges = true;
+                }
+
+                if (existingService.IsVisible != entity.IsVisible)
+                {
+                    existingService.IsVisible = entity.IsVisible;
+                    hasChanges = true;
+                }
+
+                if (entity.ServiceTypeId != Guid.Empty && existingService.ServiceTypeId != entity.ServiceTypeId)
+                {
+                    existingService.ServiceTypeId = entity.ServiceTypeId;
+                    hasChanges = true;
+                }
+
+                if (hasChanges)
+                {
                     await context.SaveChangesAsync();
                 }
 
-                return isChanged ?
+                var (resposneData, _) = ServiceConversion.FromEntity(existingService, null);
+
+                return hasChanges ?
                     new Response(true, 200, "Service updated successfully")
                     {
-                        Data = existingService
+                        Data = resposneData
                     } :
                     new Response(false, 204, "No changes made to the service");
             }
@@ -199,7 +243,13 @@ namespace ServiceApi.Infrastructure.Repositories
 
         public async Task<Service> FindServiceById(Guid id)
         {
-            return await context.Services.FindAsync(id) ?? null!;
+            return await context.Services
+                .Include(s => s.ServiceType)
+                .Include(s => s.ServiceImages)
+                .Include(s => s.ServiceVariants)
+                .Include(s => s.WalkDogServiceVariants)
+                .FirstOrDefaultAsync(s => s.ServiceId == id)
+                ?? null!;
         }
     }
 }

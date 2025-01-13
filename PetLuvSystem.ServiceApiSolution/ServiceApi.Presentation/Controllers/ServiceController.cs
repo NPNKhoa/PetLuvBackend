@@ -10,14 +10,14 @@ namespace ServiceApi.Presentation.Controllers
 {
     [Route("api/services")]
     [ApiController]
-    public class ServiceController(IService serviceInterface) : ControllerBase
+    public class ServiceController(IService serviceInterface, IServiceType serviceTypeInterface) : ControllerBase
     {
         [HttpGet]
-        public async Task<IActionResult> GetServices()
+        public async Task<IActionResult> GetServices([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
-                var response = await serviceInterface.GetAllAsync();
+                var response = await serviceInterface.GetAllAsync(pageIndex, pageSize);
                 return response.ToActionResult(this);
             }
             catch (Exception ex)
@@ -43,7 +43,7 @@ namespace ServiceApi.Presentation.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateService([FromForm] CreateUpdateServiceDTO dto, [FromForm] IFormFileCollection imageFiles)
+        public async Task<IActionResult> CreateService([FromForm] CreateServiceDTO dto, [FromForm] IFormFileCollection imageFiles)
         {
             if (!ModelState.IsValid)
             {
@@ -61,30 +61,22 @@ namespace ServiceApi.Presentation.Controllers
             {
                 var service = ServiceConversion.ToEntity(dto);
 
-                service.ServiceImages = (ICollection<ServiceImage>?)imageFiles.Select(async file => new ServiceImage
-                {
-                    ServiceImagePath = await SaveImageToStorage(file),
-                    ServiceId = service.ServiceId
-                }).ToList();
+                service.ServiceType = await serviceTypeInterface.FindByIdAsync(dto.ServiceTypeId);
 
-                //if (dto.ServiceVariants != null)
-                //{
-                //    service.ServiceVariants = dto.ServiceVariants.Select(p => new ServiceVariant
-                //    {
-                //        ServiceId = service.ServiceId,
-                //        BreedId = p.BreedId,
-                //        PetWeightRange = p.PetWeightRange,
-                //        Price = p.ServicePrice
-                //    }).ToList();
-                //}
-                //if (dto.WalkDogServiceVariants != null)
-                //{
-                //    service.WalkDogServiceVariants = dto.WalkDogServiceVariants.Select(p => new WalkDogServiceVariant
-                //    {
-                //        ServiceId = service.ServiceId,
-                //        PricePerPeriod = p.PricePerPeriod
-                //    }).ToList();
-                //}
+                service.ServiceImages = new List<ServiceImage>();
+                foreach (var imageFile in imageFiles)
+                {
+                    var imagePath = await SaveImageToStorage(imageFile);
+                    service.ServiceImages.Add(new ServiceImage
+                    {
+                        ServiceImagePath = imagePath,
+                        ServiceId = service.ServiceId,
+                    });
+                }
+
+                service.ServiceVariants = new List<ServiceVariant>();
+
+                service.WalkDogServiceVariants = new List<WalkDogServiceVariant>();
 
                 var response = await serviceInterface.CreateAsync(service);
                 return response.ToActionResult(this);
@@ -97,11 +89,19 @@ namespace ServiceApi.Presentation.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateService([FromRoute] Guid id, [FromBody] CreateUpdateServiceDTO dto)
+        public async Task<IActionResult> UpdateService([FromRoute] Guid id, [FromForm] UpdateServiceDTO dto)
         {
             try
             {
                 var service = ServiceConversion.ToEntity(dto);
+
+                service.ServiceId = id;
+
+                if (dto.ServiceTypeId.HasValue)
+                {
+                    service.ServiceType = await serviceTypeInterface.FindByIdAsync(dto.ServiceTypeId.Value);
+                }
+
                 var response = await serviceInterface.UpdateAsync(id, service);
                 return response.ToActionResult(this);
             }

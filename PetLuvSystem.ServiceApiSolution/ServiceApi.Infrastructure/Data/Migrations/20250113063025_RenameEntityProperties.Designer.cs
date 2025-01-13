@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ServiceApi.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using ServiceApi.Infrastructure.Data;
 namespace ServiceApi.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ServiceDbContext))]
-    partial class ServiceDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250113063025_RenameEntityProperties")]
+    partial class RenameEntityProperties
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -97,7 +100,6 @@ namespace ServiceApi.Infrastructure.Data.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<decimal>("ComboPrice")
-                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("ServiceComboId", "BreedId", "WeightRange");
@@ -142,21 +144,21 @@ namespace ServiceApi.Infrastructure.Data.Migrations
                     b.HasData(
                         new
                         {
-                            ServiceTypeId = new Guid("8fceba7d-2595-4cc3-b036-5062588c7591"),
+                            ServiceTypeId = new Guid("ae0b4a9b-71d7-4aed-9378-7e471aff9b0d"),
                             IsVisible = false,
                             ServiceTypeDesc = "Cung cấp các dịch vụ spa cho thú cưng trực tiếp tại cửa hàng",
                             ServiceTypeName = "Dịch vụ spa"
                         },
                         new
                         {
-                            ServiceTypeId = new Guid("cc4de076-eaca-4d91-90fe-c14727a2513a"),
+                            ServiceTypeId = new Guid("930b4133-191e-450a-baeb-7f39edc77d35"),
                             IsVisible = false,
                             ServiceTypeDesc = "Chúng tôi sẵn sàng trực tiếp đến nhà chăm sóc cho \"boss\" của bạn nếu bạn đang quá bận",
                             ServiceTypeName = "Dịch vụ spa tại nhà"
                         },
                         new
                         {
-                            ServiceTypeId = new Guid("b8f5c2d2-b651-4341-870b-a6acc7c5187a"),
+                            ServiceTypeId = new Guid("b5acc1a4-e982-4c6b-b4d2-90aa091cfdc4"),
                             IsVisible = false,
                             ServiceTypeDesc = "Nếu bạn đang quá bận để giúp cún cưng của mình giải tỏa năng lượng, hãy để chúng tôi giúp bạn làm điều đó",
                             ServiceTypeName = "Dịch vụ dắt chó đi dạo"
@@ -175,7 +177,6 @@ namespace ServiceApi.Infrastructure.Data.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<decimal>("Price")
-                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("ServiceId", "BreedId", "PetWeightRange");
@@ -189,7 +190,6 @@ namespace ServiceApi.Infrastructure.Data.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal>("PricePerPeriod")
-                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("ServiceId");
@@ -213,13 +213,13 @@ namespace ServiceApi.Infrastructure.Data.Migrations
                     b.HasOne("ServiceApi.Domain.Entities.ServiceCombo", "ServiceCombo")
                         .WithMany("ServiceComboMappings")
                         .HasForeignKey("ServiceComboId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("ServiceApi.Domain.Entities.Service", "Service")
                         .WithMany("ServiceComboMappings")
                         .HasForeignKey("ServiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Service");
@@ -232,7 +232,7 @@ namespace ServiceApi.Infrastructure.Data.Migrations
                     b.HasOne("ServiceApi.Domain.Entities.ServiceCombo", "ServiceCombo")
                         .WithMany("ServiceComboVariants")
                         .HasForeignKey("ServiceComboId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("ServiceCombo");
@@ -243,7 +243,7 @@ namespace ServiceApi.Infrastructure.Data.Migrations
                     b.HasOne("ServiceApi.Domain.Entities.Service", "Service")
                         .WithMany("ServiceImages")
                         .HasForeignKey("ServiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Service");
@@ -254,7 +254,7 @@ namespace ServiceApi.Infrastructure.Data.Migrations
                     b.HasOne("ServiceApi.Domain.Entities.Service", "Service")
                         .WithMany("ServiceVariants")
                         .HasForeignKey("ServiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Service");
@@ -265,7 +265,7 @@ namespace ServiceApi.Infrastructure.Data.Migrations
                     b.HasOne("ServiceApi.Domain.Entities.Service", "Service")
                         .WithMany("WalkDogServiceVariants")
                         .HasForeignKey("ServiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Service");

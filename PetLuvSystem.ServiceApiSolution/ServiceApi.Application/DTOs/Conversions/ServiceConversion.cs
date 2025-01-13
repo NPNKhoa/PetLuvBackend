@@ -13,39 +13,43 @@ namespace ServiceApi.Application.DTOs.Conversions
             ServiceName = dto.ServiceName,
             ServiceDesc = dto.ServiceDesc,
             IsVisible = dto.IsVisible,
-            ServiceTypeId = dto.ServiceTypeId,
-            ServiceType = new ServiceType
-            {
-                ServiceTypeId = dto.ServiceTypeId,
-                ServiceTypeName = dto.ServiceTypeName
-            },
             ServiceImages = dto.ServiceImageUrls?.Select(p => new ServiceImage
             {
                 ServiceImagePath = p,
                 ServiceId = dto.ServiceId
             }).ToList(),
-            ServiceVariants = dto.ServicePrices?.Select(p => new ServiceVariant
+            ServiceVariants = dto.ServiceVariants?.Select(p => new ServiceVariant
             {
-                ServiceId = dto.ServiceId,
+                ServiceId = p.ServiceId,
                 BreedId = p.BreedId,
                 PetWeightRange = p.PetWeightRange,
-                Price = p.ServicePrice
+                Price = p.Price
             }).ToList(),
-            WalkDogServiceVariants = dto.WalkDogServicePrices?.Select(p => new WalkDogServiceVariant
+            WalkDogServiceVariants = dto.WalkDogServiceVariants?.Select(p => new WalkDogServiceVariant
             {
-                ServiceId = dto.ServiceId,
-                PricePerPeriod = p.PricePerPeriod,
-                Service = p.Service
+                ServiceId = p.ServiceId,
+                PricePerPeriod = p.PricePerPeriod
             }).ToList()
         };
 
-        public static Service ToEntity(CreateUpdateServiceDTO dto) => new()
+        public static Service ToEntity(CreateServiceDTO dto) => new()
         {
             ServiceId = Guid.NewGuid(),
             ServiceName = dto.ServiceName,
             ServiceDesc = dto.ServiceDesc,
-            ServiceTypeId = dto.ServiceTypeId,
+            IsVisible = dto.IsVisible,
+            ServiceTypeId = dto.ServiceTypeId
         };
+
+        public static Service ToEntity(UpdateServiceDTO dto) => new()
+        {
+            ServiceId = Guid.NewGuid(),
+            ServiceName = dto.ServiceName ?? null,
+            ServiceDesc = dto.ServiceDesc ?? null,
+            IsVisible = dto.IsVisible.HasValue && dto.IsVisible.Value,
+            ServiceTypeId = dto.ServiceTypeId ?? Guid.Empty
+        };
+
 
         public static (ServiceDTO?, IEnumerable<ServiceDTO>?) FromEntity(Service? service, IEnumerable<Service>? services)
         {
@@ -57,17 +61,16 @@ namespace ServiceApi.Application.DTOs.Conversions
                     service.ServiceName,
                     service.ServiceDesc,
                     service.IsVisible,
-                    service.ServiceTypeId,
-                    service.ServiceType.ServiceTypeName,
-                    service?.ServiceImages?.Select(p => p.ServiceImagePath).ToList()!,
-                    service?.ServiceVariants?.Select(p => new ServiceVariantDTO
+                    service.ServiceType?.ServiceTypeName,
+                    service.ServiceImages?.Select(p => p.ServiceImagePath).ToList()!,
+                    service.ServiceVariants?.Select(p => new ServiceVariantDTO
                     (
                         p.ServiceId,
                         p.BreedId,
                         p.PetWeightRange!,
                         p.Price
                     )).ToList(),
-                    service?.WalkDogServiceVariants?.Select(p => new WalkDogServiceVariantDTO
+                    service.WalkDogServiceVariants?.Select(p => new WalkDogServiceVariantDTO
                     (
                         p.ServiceId,
                         p.PricePerPeriod,
@@ -79,32 +82,36 @@ namespace ServiceApi.Application.DTOs.Conversions
 
             if (services is not null && service is null)
             {
+                foreach (Service item in services)
+                {
+                    Console.WriteLine(item.ServiceImages);
+                }
                 var _services = services.Select(p => new ServiceDTO
                 (
                     p.ServiceId,
                     p.ServiceName,
                     p.ServiceDesc,
                     p.IsVisible,
-                    p.ServiceTypeId,
-                    p.ServiceType.ServiceTypeName,
-                    p.ServiceImages?.Select(p => p.ServiceImagePath).ToList()!,
-                    p.ServiceVariants?.Select(p => new ServiceVariantDTO
+                    p.ServiceType?.ServiceTypeName,
+                    p.ServiceImages?.Select(img => img.ServiceImagePath).ToList()!,
+                    p.ServiceVariants?.Select(variant => new ServiceVariantDTO
                     (
-                        p.ServiceId,
-                        p.BreedId,
-                        p.PetWeightRange!,
-                        p.Price
-                    )).ToList(),
-                    p.WalkDogServiceVariants?.Select(p => new WalkDogServiceVariantDTO
+                        variant.ServiceId,
+                        variant.BreedId,
+                        variant.PetWeightRange!,
+                        variant.Price
+                    )).ToList() ?? new List<ServiceVariantDTO>(),
+                    p.WalkDogServiceVariants?.Select(walkVariant => new WalkDogServiceVariantDTO
                     (
-                        p.ServiceId,
-                        p.PricePerPeriod,
-                        p.Service
-                    )).ToList()
+                        walkVariant.ServiceId,
+                        walkVariant.PricePerPeriod,
+                        walkVariant.Service
+                    )).ToList() ?? new List<WalkDogServiceVariantDTO>()
                 )).ToList();
 
                 return (null, _services);
             }
+
 
             return (null, null);
         }

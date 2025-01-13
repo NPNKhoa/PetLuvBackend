@@ -11,9 +11,9 @@ namespace ServiceApi.Domain.Entities
         public bool IsVisible { get; set; }
 
         public Guid ServiceTypeId { get; set; }
-        public virtual ServiceType ServiceType { get; set; }
+        public ServiceType? ServiceType { get; set; }
 
-        public virtual ICollection<ServiceImage>? ServiceImages { get; set; }
+        public ICollection<ServiceImage>? ServiceImages { get; set; }
         public virtual ICollection<ServiceComboMapping>? ServiceComboMappings { get; set; }
         public virtual ICollection<ServiceVariant>? ServiceVariants { get; set; }
         public virtual ICollection<WalkDogServiceVariant>? WalkDogServiceVariants { get; set; }

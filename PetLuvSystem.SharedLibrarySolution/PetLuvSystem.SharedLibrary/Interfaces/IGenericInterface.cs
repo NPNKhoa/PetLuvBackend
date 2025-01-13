@@ -8,7 +8,7 @@ namespace PetLuvSystem.SharedLibrary.Interfaces
         Task<Response> CreateAsync(T entity);
         Task<Response> UpdateAsync(Guid id, T entity);
         Task<Response> DeleteAsync(Guid id);
-        Task<Response> GetAllAsync();
+        Task<Response> GetAllAsync(int pageIndex = 1, int pageSize = 10);
         Task<Response> GetByIdAsync(Guid id);
         Task<Response> GetByAsync(Expression<Func<T, bool>> predicate);
     }

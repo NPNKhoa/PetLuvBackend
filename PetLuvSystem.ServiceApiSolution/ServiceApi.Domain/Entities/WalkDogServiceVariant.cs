@@ -5,6 +5,6 @@
         public Guid ServiceId { get; set; }
         public decimal PricePerPeriod { get; set; }
 
-        public Service? Service { get; set; }
+        public virtual Service? Service { get; set; }
     }
 }

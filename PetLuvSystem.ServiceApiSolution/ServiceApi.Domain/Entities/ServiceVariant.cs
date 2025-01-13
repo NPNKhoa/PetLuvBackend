@@ -7,6 +7,6 @@
         public string? PetWeightRange { get; set; }
         public decimal Price { get; set; }
 
-        public Service? Service { get; set; }
+        public virtual Service? Service { get; set; }
     }
 }

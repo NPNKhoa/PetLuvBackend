@@ -79,14 +79,36 @@ namespace ServiceApi.Infrastructure.Repositories
             }
         }
 
-        public async Task<Response> GetAllAsync()
+        public async Task<Response> GetAllAsync(int pageIndex, int pageSize)
         {
             try
             {
                 var serviceTypes = await context.ServiceTypes.AsNoTracking().ToListAsync();
 
+                var query = context.ServiceTypes
+                    .AsNoTracking();
+
+                var totalCount = await query.CountAsync();
+
+                var services = await query
+                    .Skip((pageIndex - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
                 return serviceTypes is not null && serviceTypes.Any() ?
-                    new Response(true, 200, "Service types retrived succesfully") { Data = serviceTypes } :
+                    new Response(true, 200, "Service types retrived succesfully")
+                    {
+                        Data = new
+                        {
+                            data = serviceTypes,
+                            meta = new
+                            {
+                                totalPage = Math.Ceiling((double)totalCount / pageSize),
+                                pageIndex,
+                                pageSize
+                            }
+                        }
+                    } :
                     new Response(false, 404, "No service type found");
             }
             catch (Exception ex)
@@ -143,22 +165,32 @@ namespace ServiceApi.Infrastructure.Repositories
                     return new Response(false, 404, $"Can not find service type with id {id}");
                 }
 
-                var isChanged =
-                    existingServiceType.ServiceTypeName != entity.ServiceTypeName
-                    || existingServiceType.ServiceTypeDesc != entity.ServiceTypeDesc
-                    || existingServiceType.IsVisible != entity.IsVisible;
+                bool hasChanges = false;
 
-                if (isChanged)
+                if (existingServiceType.ServiceTypeName != entity.ServiceTypeName)
                 {
                     existingServiceType.ServiceTypeName = entity.ServiceTypeName;
-                    existingServiceType.ServiceTypeDesc = entity.ServiceTypeDesc;
-                    existingServiceType.IsVisible = entity.IsVisible;
+                    hasChanges = true;
+                }
 
-                    context.ServiceTypes.Update(existingServiceType);
+                if (existingServiceType.ServiceTypeDesc != entity.ServiceTypeDesc)
+                {
+                    existingServiceType.ServiceTypeDesc = entity.ServiceTypeDesc;
+                    hasChanges = true;
+                }
+
+                if (existingServiceType.IsVisible != entity.IsVisible)
+                {
+                    existingServiceType.IsVisible = entity.IsVisible;
+                    hasChanges = true;
+                }
+
+                if (hasChanges)
+                {
                     await context.SaveChangesAsync();
                 }
 
-                return isChanged ?
+                return hasChanges ?
                     new Response(true, 200, "Service type updated successfully")
                     {
                         Data = existingServiceType

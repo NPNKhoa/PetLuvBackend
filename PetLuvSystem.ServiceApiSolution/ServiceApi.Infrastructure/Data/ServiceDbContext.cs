@@ -35,6 +35,12 @@ namespace ServiceApi.Infrastructure.Data
                     .HasForeignKey(scm => scm.ServiceId);
             });
 
+            modelBuilder.Entity<ServiceType>()
+                .HasMany(st => st.Services)
+                .WithOne(s => s.ServiceType)
+                .HasForeignKey(s => s.ServiceTypeId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             // ServiceComboMapping
             modelBuilder.Entity<ServiceComboMapping>()
                 .HasKey(scm => new { scm.ServiceId, scm.ServiceComboId });
@@ -43,25 +49,29 @@ namespace ServiceApi.Infrastructure.Data
                 .HasOne(scm => scm.Service)
                 .WithMany(s => s.ServiceComboMappings)
                 .HasForeignKey(scm => scm.ServiceId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<ServiceComboMapping>()
                 .HasOne(scm => scm.ServiceCombo)
                 .WithMany(sc => sc.ServiceComboMappings)
                 .HasForeignKey(scm => scm.ServiceComboId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
-            // ServiceComboPrice
+            // ServiceComboVariant
             modelBuilder.Entity<ServiceComboVariant>()
                 .HasKey(scp => new { scp.ServiceComboId, scp.BreedId, scp.WeightRange });
 
             modelBuilder.Entity<ServiceComboVariant>()
                 .HasOne(scp => scp.ServiceCombo)
-                .WithMany(sc => sc.ServiceComboPrices)
+                .WithMany(sc => sc.ServiceComboVariants)
                 .HasForeignKey(scp => scp.ServiceComboId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
-            // ServicePrice
+            modelBuilder.Entity<ServiceComboVariant>()
+                .Property(scv => scv.ComboPrice)
+                .HasPrecision(18, 2);
+
+            // ServiceVariant
             modelBuilder.Entity<ServiceVariant>()
                 .HasKey(sp => new { sp.ServiceId, sp.BreedId, sp.PetWeightRange });
 
@@ -69,9 +79,13 @@ namespace ServiceApi.Infrastructure.Data
                 .HasOne(sp => sp.Service)
                 .WithMany(s => s.ServiceVariants)
                 .HasForeignKey(sp => sp.ServiceId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
-            // WalkDogServicePrice
+            modelBuilder.Entity<ServiceVariant>()
+                .Property(sv => sv.Price)
+                .HasPrecision(18, 2);
+
+            // WalkDogVariant
             modelBuilder.Entity<WalkDogServiceVariant>()
                 .HasKey(wdsp => wdsp.ServiceId);
 
@@ -79,7 +93,11 @@ namespace ServiceApi.Infrastructure.Data
                 .HasOne(wdsp => wdsp.Service)
                 .WithMany(s => s.WalkDogServiceVariants)
                 .HasForeignKey(wdsp => wdsp.ServiceId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<WalkDogServiceVariant>()
+                .Property(wdsv => wdsv.PricePerPeriod)
+                .HasPrecision(18, 2);
 
             // ServiceImage
             modelBuilder.Entity<ServiceImage>()
@@ -89,7 +107,7 @@ namespace ServiceApi.Infrastructure.Data
                 .HasOne(si => si.Service)
                 .WithMany(s => s.ServiceImages)
                 .HasForeignKey(si => si.ServiceId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Add data for ServiceType
             modelBuilder.Entity<ServiceType>().HasData(
