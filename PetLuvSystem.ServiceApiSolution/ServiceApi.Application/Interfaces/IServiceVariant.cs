@@ -2,7 +2,7 @@
 
 namespace ServiceApi.Application.Interfaces
 {
-    public interface IServiceComboPrice : IGenericInterface<IServiceComboPrice>
+    public interface IServiceVariant : IGenericInterface<IServiceVariant>
     {
     }
 }

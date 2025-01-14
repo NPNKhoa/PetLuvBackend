@@ -19,10 +19,10 @@ namespace ServiceApi.Infrastructure.DependencyInjection
             services.AddScoped<IService, ServiceRepository>();
             services.AddScoped<IServiceCombo, ServiceComboRepository>();
             services.AddScoped<IServiceComboMapping, ServiceComboMappingRepository>();
-            services.AddScoped<IServiceComboPrice, ServiceComboPriceRepository>();
+            services.AddScoped<IServiceComboVariant, ServiceComboPriceRepository>();
             services.AddScoped<IServiceImage, ServiceImageRepository>();
-            services.AddScoped<IServicePrice, ServiceVariantRepository>();
-            services.AddScoped<IWalkDogServicePrice, WalkDogServiceVariantRepository>();
+            services.AddScoped<IServiceVariant, ServiceVariantRepository>();
+            services.AddScoped<IWalkDogServiceVariant, WalkDogServiceVariantRepository>();
 
             services.AddQuartz(q =>
             {

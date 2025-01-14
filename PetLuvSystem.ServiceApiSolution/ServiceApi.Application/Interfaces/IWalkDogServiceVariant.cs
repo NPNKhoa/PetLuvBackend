@@ -2,7 +2,7 @@
 
 namespace ServiceApi.Application.Interfaces
 {
-    public interface IWalkDogServicePrice : IGenericInterface<IWalkDogServicePrice>
+    public interface IWalkDogServiceVariant : IGenericInterface<IWalkDogServiceVariant>
     {
     }
 }

@@ -4,9 +4,9 @@ using System.Linq.Expressions;
 
 namespace ServiceApi.Infrastructure.Repositories
 {
-    public class ServiceComboPriceRepository : IServiceComboPrice
+    public class ServiceComboPriceRepository : IServiceComboVariant
     {
-        public Task<Response> CreateAsync(IServiceComboPrice entity)
+        public Task<Response> CreateAsync(IServiceComboVariant entity)
         {
             throw new NotImplementedException();
         }
@@ -21,7 +21,7 @@ namespace ServiceApi.Infrastructure.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<Response> GetByAsync(Expression<Func<IServiceComboPrice, bool>> predicate)
+        public Task<Response> GetByAsync(Expression<Func<IServiceComboVariant, bool>> predicate)
         {
             throw new NotImplementedException();
         }
@@ -31,7 +31,7 @@ namespace ServiceApi.Infrastructure.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<Response> UpdateAsync(Guid id, IServiceComboPrice entity)
+        public Task<Response> UpdateAsync(Guid id, IServiceComboVariant entity)
         {
             throw new NotImplementedException();
         }
