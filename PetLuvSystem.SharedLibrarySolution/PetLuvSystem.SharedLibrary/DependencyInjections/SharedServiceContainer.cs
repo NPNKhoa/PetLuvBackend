@@ -12,6 +12,8 @@ namespace PetLuvSystem.SharedLibrary.DependencyInjections
         public static IServiceCollection AddSharedServices<TContext>
             (this IServiceCollection services, IConfiguration config) where TContext : DbContext
         {
+            services.AddCorsPolicy();
+
             services.AddDbContext<TContext>(options =>
                 options.UseSqlServer(config.GetConnectionString("Default"),
                     sqlServerOption => sqlServerOption.EnableRetryOnFailure())
@@ -30,6 +32,8 @@ namespace PetLuvSystem.SharedLibrary.DependencyInjections
 
         public static IApplicationBuilder UseSharedPolicies(this IApplicationBuilder app)
         {
+            app.UseCorsPolicy();
+
             app.UseMiddleware<GlobalException>();
 
             //app.UseMiddleware<ListenToOnlyApiGateway>();

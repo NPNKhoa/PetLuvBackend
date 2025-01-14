@@ -18,5 +18,12 @@ namespace PetLuvSystem.SharedLibrary.Logs
             Console.WriteLine(message);
             Log.Information(message);
         }
+
+        public static void LogError(string message)
+        {
+            Console.WriteLine("Error Message: ");
+            Console.WriteLine(message);
+            Log.Error(message);
+        }
     }
 }

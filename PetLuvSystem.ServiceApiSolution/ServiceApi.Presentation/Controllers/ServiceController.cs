@@ -1,16 +1,18 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PetLuvSystem.SharedLibrary.Logs;
 using PetLuvSystem.SharedLibrary.Responses;
+using Quartz;
 using ServiceApi.Application.DTOs.Conversions;
 using ServiceApi.Application.DTOs.ServiceDTOs;
 using ServiceApi.Application.Interfaces;
+using ServiceApi.Application.Jobs;
 using ServiceApi.Domain.Entities;
 
 namespace ServiceApi.Presentation.Controllers
 {
     [Route("api/services")]
     [ApiController]
-    public class ServiceController(IService serviceInterface, IServiceType serviceTypeInterface) : ControllerBase
+    public class ServiceController(IService serviceInterface, IServiceType serviceTypeInterface, ISchedulerFactory schedulerFactory) : ControllerBase
     {
         [HttpGet]
         public async Task<IActionResult> GetServices([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
@@ -79,6 +81,25 @@ namespace ServiceApi.Presentation.Controllers
                 service.WalkDogServiceVariants = new List<WalkDogServiceVariant>();
 
                 var response = await serviceInterface.CreateAsync(service);
+
+                if (response.Flag == true)
+                {
+                    var scheduler = await schedulerFactory.GetScheduler();
+
+                    var jobDetail = JobBuilder.Create<DeleteServiceJob>()
+                        .WithIdentity($"DeleteServiceJob-{service.ServiceId}")
+                        .UsingJobData("ServiceId", service.ServiceId) // Gắn ServiceId
+                        .Build();
+
+                    var trigger = TriggerBuilder.Create()
+                        .WithIdentity($"DeleteServiceTrigger-{service.ServiceId}")
+                        .StartAt(DateTimeOffset.Now.AddMinutes(1)) // Thời gian 30 phút
+                        .Build();
+
+                    await scheduler.ScheduleJob(jobDetail, trigger);
+                }
+
+
                 return response.ToActionResult(this);
             }
             catch (Exception ex)

@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using PetLuvSystem.SharedLibrary.DependencyInjections;
+using Quartz;
 using ServiceApi.Application.Interfaces;
 using ServiceApi.Infrastructure.Data;
 using ServiceApi.Infrastructure.Repositories;
@@ -22,6 +23,13 @@ namespace ServiceApi.Infrastructure.DependencyInjection
             services.AddScoped<IServiceImage, ServiceImageRepository>();
             services.AddScoped<IServicePrice, ServiceVariantRepository>();
             services.AddScoped<IWalkDogServicePrice, WalkDogServiceVariantRepository>();
+
+            services.AddQuartz(q =>
+            {
+                q.UseInMemoryStore();
+            });
+
+            services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
             return services;
         }
