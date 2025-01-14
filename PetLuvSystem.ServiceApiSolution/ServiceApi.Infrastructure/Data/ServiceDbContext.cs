@@ -8,11 +8,11 @@ namespace ServiceApi.Infrastructure.Data
         public DbSet<Service> Services { get; set; }
         public DbSet<ServiceCombo> ServiceCombos { get; set; }
         public DbSet<ServiceComboMapping> ServiceComboMappings { get; set; }
-        public DbSet<ServiceComboVariant> ServiceComboPrices { get; set; }
+        public DbSet<ServiceComboVariant> ServiceComboVariants { get; set; }
         public DbSet<ServiceImage> ServiceImages { get; set; }
-        public DbSet<ServiceVariant> ServicePrices { get; set; }
+        public DbSet<ServiceVariant> ServiceVariants { get; set; }
         public DbSet<ServiceType> ServiceTypes { get; set; }
-        public DbSet<WalkDogServiceVariant> WalkDogServicePrices { get; set; }
+        public DbSet<WalkDogServiceVariant> WalkDogServiceVariants { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
