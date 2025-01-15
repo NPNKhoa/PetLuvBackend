@@ -1,6 +1,7 @@
 ﻿using PetLuvSystem.SharedLibrary.Logs;
 using Quartz;
 using ServiceApi.Application.Interfaces;
+using ServiceApi.Domain.Entities;
 
 namespace ServiceApi.Application.Jobs
 {
@@ -17,14 +18,14 @@ namespace ServiceApi.Application.Jobs
         {
             if (!context.JobDetail.JobDataMap.ContainsKey("ServiceId"))
             {
-                LogException.LogError("JobDataMap không chứa ServiceId.");
+                LogException.LogError("JobDataMap not contain ServiceId.");
                 return;
             }
 
             var serviceId = context.JobDetail.JobDataMap.GetGuid("ServiceId");
             if (serviceId == Guid.Empty)
             {
-                LogException.LogError("ServiceId không hợp lệ.");
+                LogException.LogError("ServiceId invalid.");
                 return;
             }
 
@@ -36,18 +37,34 @@ namespace ServiceApi.Application.Jobs
                 (service.WalkDogServiceVariants == null || service.WalkDogServiceVariants.Count == 0))
             {
                 await _serviceInterface.DeleteAsync(serviceId);
-                LogException.LogInformation($"Service {serviceId} đã bị xóa tự động.");
+                LogException.LogInformation($"Service with id {serviceId} is automatically deleted");
             }
             else
             {
-                service.IsVisible = true; // Cập nhật trạng thái
-                await _serviceInterface.UpdateAsync(serviceId, service);
+                var updatedService = new Service
+                {
+                    ServiceId = service.ServiceId,
+                    ServiceName = service.ServiceName,
+                    ServiceDesc = service.ServiceDesc,
+                    IsVisible = true,
+                    ServiceTypeId = service.ServiceTypeId,
+                    ServiceVariants = service.ServiceVariants,
+                    WalkDogServiceVariants = service.WalkDogServiceVariants
+                };
+
+                var response = await _serviceInterface.UpdateAsync(serviceId, updatedService);
+
+                if (response.Flag == false)
+                {
+                    LogException.LogInformation($"Service {serviceId} is fail to update");
+                    return;
+                }
 
                 // Hủy job khi đã cập nhật thành công
                 var scheduler = context.Scheduler;
                 await scheduler.DeleteJob(context.JobDetail.Key);
 
-                LogException.LogInformation($"Service {serviceId} đã được cập nhật IsVisible = true và job đã bị hủy.");
+                LogException.LogInformation($"Service {serviceId} is updated IsVisible = true and job was cancelled.");
             }
         }
     }

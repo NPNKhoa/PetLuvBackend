@@ -208,7 +208,7 @@ namespace ServiceApi.Infrastructure.Repositories
                     hasChanges = true;
                 }
 
-                if (existingService.IsVisible != entity.IsVisible)
+                if (existingService.IsVisible.ToString() != entity.IsVisible.ToString())
                 {
                     existingService.IsVisible = entity.IsVisible;
                     hasChanges = true;
