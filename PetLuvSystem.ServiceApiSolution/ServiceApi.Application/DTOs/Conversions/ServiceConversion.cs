@@ -82,10 +82,6 @@ namespace ServiceApi.Application.DTOs.Conversions
 
             if (services is not null && service is null)
             {
-                foreach (Service item in services)
-                {
-                    Console.WriteLine(item.ServiceImages);
-                }
                 var _services = services.Select(p => new ServiceDTO
                 (
                     p.ServiceId,

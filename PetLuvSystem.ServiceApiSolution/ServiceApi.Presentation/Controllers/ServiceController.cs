@@ -12,7 +12,7 @@ namespace ServiceApi.Presentation.Controllers
 {
     [Route("api/services")]
     [ApiController]
-    public class ServiceController(IService serviceInterface, IServiceType serviceTypeInterface, ISchedulerFactory schedulerFactory) : ControllerBase
+    public class ServiceController(IService serviceInterface, IServiceType serviceTypeInterface, IServiceVariant serviceVariantInterface, ISchedulerFactory schedulerFactory) : ControllerBase
     {
         [HttpGet]
         public async Task<IActionResult> GetServices([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
@@ -93,12 +93,11 @@ namespace ServiceApi.Presentation.Controllers
 
                     var trigger = TriggerBuilder.Create()
                         .WithIdentity($"DeleteServiceTrigger-{service.ServiceId}")
-                        .StartAt(DateTimeOffset.Now.AddMinutes(1)) // Thời gian 30 phút
+                        .StartAt(DateTimeOffset.Now.AddMinutes(30)) // Thời gian 30 phút
                         .Build();
 
                     await scheduler.ScheduleJob(jobDetail, trigger);
                 }
-
 
                 return response.ToActionResult(this);
             }
@@ -140,6 +139,21 @@ namespace ServiceApi.Presentation.Controllers
             {
                 var response = await serviceInterface.DeleteAsync(id);
                 return response.ToActionResult(this);
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
+                return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error");
+            }
+        }
+
+        [HttpGet("{serviceId}/service-variants")]
+        public async Task<IActionResult> GetVariantsByService([FromRoute] Guid serviceId)
+        {
+            try
+            {
+                var serviceVariants = await serviceVariantInterface.GetByServiceAsync(serviceId);
+                return serviceVariants.ToActionResult(this);
             }
             catch (Exception ex)
             {

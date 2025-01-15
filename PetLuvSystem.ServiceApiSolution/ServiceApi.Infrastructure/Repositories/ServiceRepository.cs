@@ -29,7 +29,7 @@ namespace ServiceApi.Infrastructure.Repositories
 
                 return new Response(true, 201, "Service created successfully")
                 {
-                    Data = responseData
+                    Data = new { data = responseData }
                 };
             }
             catch (Exception ex)
@@ -61,7 +61,7 @@ namespace ServiceApi.Infrastructure.Repositories
 
                     return new Response(true, 200, "Service was marked as hidden successfully")
                     {
-                        Data = responseData
+                        Data = new { data = responseData }
                     };
                 }
 
@@ -70,7 +70,7 @@ namespace ServiceApi.Infrastructure.Repositories
 
                 return new Response(false, 200, $"Service with id {id} was permanently deleted")
                 {
-                    Data = responseData
+                    Data = new { data = responseData }
                 };
             }
             catch (Exception ex)
@@ -146,7 +146,7 @@ namespace ServiceApi.Infrastructure.Repositories
 
                 return new Response(true, 200, "Service retrived successfully")
                 {
-                    Data = singleService
+                    Data = new { data = singleService }
                 };
             }
             catch (Exception ex)
@@ -173,7 +173,7 @@ namespace ServiceApi.Infrastructure.Repositories
 
                 return new Response(true, 200, "Service retrived successfully")
                 {
-                    Data = singleService
+                    Data = new { data = singleService }
                 };
             }
             catch (Exception ex)
@@ -230,7 +230,7 @@ namespace ServiceApi.Infrastructure.Repositories
                 return hasChanges ?
                     new Response(true, 200, "Service updated successfully")
                     {
-                        Data = resposneData
+                        Data = new { data = resposneData }
                     } :
                     new Response(false, 204, "No changes made to the service");
             }

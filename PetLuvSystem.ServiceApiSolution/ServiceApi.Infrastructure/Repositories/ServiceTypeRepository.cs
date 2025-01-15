@@ -29,7 +29,7 @@ namespace ServiceApi.Infrastructure.Repositories
 
                 return new Response(true, 201, "Service type created successfully")
                 {
-                    Data = singleServiceType
+                    Data = new { data = singleServiceType }
                 };
             }
             catch (Exception ex)
@@ -57,7 +57,7 @@ namespace ServiceApi.Infrastructure.Repositories
                     await context.SaveChangesAsync();
                     return new Response(true, 200, "Service type deleted successfully")
                     {
-                        Data = existingServiceType
+                        Data = new { data = existingServiceType }
                     };
                 }
 
@@ -68,7 +68,7 @@ namespace ServiceApi.Infrastructure.Repositories
 
                 return new Response(true, 200, "Service type was deleted permanently")
                 {
-                    Data = singleServiceType
+                    Data = new { data = singleServiceType }
                 };
             }
             catch (Exception ex)
@@ -126,7 +126,7 @@ namespace ServiceApi.Infrastructure.Repositories
                 var serviceType = await context.ServiceTypes.Where(predicate).AsNoTracking().FirstOrDefaultAsync();
 
                 return serviceType is not null ?
-                    new Response(true, 200, "Service type retrived succesfully") { Data = serviceType } :
+                    new Response(true, 200, "Service type retrived succesfully") { Data = new { data = serviceType } } :
                     new Response(false, 404, "No service type found");
             }
             catch (Exception ex)
@@ -143,7 +143,7 @@ namespace ServiceApi.Infrastructure.Repositories
                 var existingServiceType = await context.ServiceTypes.FindAsync(id);
 
                 return existingServiceType is not null ?
-                    new Response(true, 200, "Service type retrived succesfully") { Data = existingServiceType } :
+                    new Response(true, 200, "Service type retrived succesfully") { Data = new { data = existingServiceType } } :
                     new Response(false, 404, "No service type found");
             }
             catch (Exception ex)
@@ -193,7 +193,7 @@ namespace ServiceApi.Infrastructure.Repositories
                 return hasChanges ?
                     new Response(true, 200, "Service type updated successfully")
                     {
-                        Data = existingServiceType
+                        Data = new { data = existingServiceType }
                     } : new Response(true, 204, "No changes detected. No update needed");
             }
             catch (Exception ex)
