@@ -15,7 +15,7 @@ namespace ServiceApi.Infrastructure.Repositories
         {
             try
             {
-                var existingService = await GetByAsync(x => x.ServiceName == entity.ServiceName);
+                var existingService = await GetByAsync(x => x.ServiceName == entity.ServiceName && x.ServiceTypeId == entity.ServiceTypeId);
 
                 if (existingService.Data is not null)
                 {

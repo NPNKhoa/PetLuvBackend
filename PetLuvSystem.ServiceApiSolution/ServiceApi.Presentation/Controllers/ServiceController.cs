@@ -12,7 +12,7 @@ namespace ServiceApi.Presentation.Controllers
 {
     [Route("api/services")]
     [ApiController]
-    public class ServiceController(IService serviceInterface, IServiceType serviceTypeInterface, IServiceVariant serviceVariantInterface, ISchedulerFactory schedulerFactory) : ControllerBase
+    public class ServiceController(IService serviceInterface, IServiceType serviceTypeInterface, IServiceVariant serviceVariantInterface, IWalkDogServiceVariant walkDogServiceVariantInterface, ISchedulerFactory schedulerFactory) : ControllerBase
     {
         [HttpGet]
         public async Task<IActionResult> GetServices([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
@@ -162,7 +162,22 @@ namespace ServiceApi.Presentation.Controllers
             }
         }
 
-        private async Task<string> SaveImageToStorage(IFormFile imageFile)
+        [HttpGet("{serviceId}/walk-dog-variants")]
+        public async Task<IActionResult> GetWalkDogVariantsByService([FromRoute] Guid serviceId)
+        {
+            try
+            {
+                var walkDogServiceVariants = await walkDogServiceVariantInterface.GetByServiceAsync(serviceId);
+                return walkDogServiceVariants.ToActionResult(this);
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
+                return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error");
+            }
+        }
+
+        private static async Task<string> SaveImageToStorage(IFormFile imageFile)
         {
             var randomSuffix = new Random().Next(1000, 9999);
             var fileName = DateTime.Now.ToString("yyyyMMddHHmmssfff") + "_" +

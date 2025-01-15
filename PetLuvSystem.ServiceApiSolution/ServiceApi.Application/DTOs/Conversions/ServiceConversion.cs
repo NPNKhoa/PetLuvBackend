@@ -73,8 +73,8 @@ namespace ServiceApi.Application.DTOs.Conversions
                     service.WalkDogServiceVariants?.Select(p => new WalkDogServiceVariantDTO
                     (
                         p.ServiceId,
-                        p.PricePerPeriod,
-                        p.Service
+                        p.BreedId,
+                        p.PricePerPeriod
                     )).ToList()
                 );
                 return (singleService, null);
@@ -100,8 +100,8 @@ namespace ServiceApi.Application.DTOs.Conversions
                     p.WalkDogServiceVariants?.Select(walkVariant => new WalkDogServiceVariantDTO
                     (
                         walkVariant.ServiceId,
-                        walkVariant.PricePerPeriod,
-                        walkVariant.Service
+                        walkVariant.BreedId,
+                        walkVariant.PricePerPeriod
                     )).ToList() ?? new List<WalkDogServiceVariantDTO>()
                 )).ToList();
 
