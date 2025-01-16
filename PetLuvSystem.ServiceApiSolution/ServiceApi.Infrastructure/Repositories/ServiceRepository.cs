@@ -103,7 +103,7 @@ namespace ServiceApi.Infrastructure.Repositories
 
                 var (_, responseData) = ServiceConversion.FromEntity(null, services);
 
-                return new Response(true, 200, "Service retrived successfully")
+                return new Response(true, 200, "Service retrieved successfully")
                 {
                     Data = new
                     {

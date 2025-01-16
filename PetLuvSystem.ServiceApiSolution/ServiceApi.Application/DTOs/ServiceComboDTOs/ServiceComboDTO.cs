@@ -1,5 +1,5 @@
-﻿using ServiceApi.Application.DTOs.ServiceDTOs;
-
+﻿using ServiceApi.Application.DTOs.ServiceComboVariantDTOs;
+using ServiceApi.Application.DTOs.ServiceDTOs;
 using System.ComponentModel.DataAnnotations;
 
 namespace ServiceApi.Application.DTOs.ServiceComboDTOs
@@ -9,7 +9,7 @@ namespace ServiceApi.Application.DTOs.ServiceComboDTOs
         [Required] Guid ServiceComboId,
         [Required] string? ServiceComboName,
         [Required] string? ServiceComboDesc,
-        [Required] ICollection<ServiceComboPriceDTOs.ServiceComboPriceDTO>? ComboPrices,
+        [Required] ICollection<ServiceComboVariantDTO>? ComboVariants,
         [Required] ICollection<ServiceDTO>? Services,
         bool IsVisible = false
     );

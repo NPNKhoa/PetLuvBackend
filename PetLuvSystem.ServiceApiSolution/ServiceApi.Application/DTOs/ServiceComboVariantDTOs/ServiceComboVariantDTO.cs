@@ -1,8 +1,8 @@
 ﻿using ServiceApi.Domain.Entities;
 
-namespace ServiceApi.Application.DTOs.ServiceComboPriceDTOs
+namespace ServiceApi.Application.DTOs.ServiceComboVariantDTOs
 {
-    public record ServiceComboPriceDTO
+    public record ServiceComboVariantDTO
     (
         Guid ServiceComboId,
         Guid BreedId,
