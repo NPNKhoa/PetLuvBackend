@@ -1,0 +1,181 @@
+﻿using Microsoft.EntityFrameworkCore;
+using PetLuvSystem.SharedLibrary.Logs;
+using PetLuvSystem.SharedLibrary.Responses;
+using ServiceApi.Application.DTOs.Conversions;
+using ServiceApi.Application.Interfaces;
+using ServiceApi.Domain.Entities;
+using ServiceApi.Infrastructure.Data;
+using System.Linq.Expressions;
+
+namespace ServiceApi.Infrastructure.Repositories
+{
+    public class ServiceComboVariantRepository(ServiceDbContext context) : IServiceComboVariant
+    {
+        public async Task<Response> CreateAsync(ServiceComboVariant entity)
+        {
+            try
+            {
+                var existingCombo = await FindByKey(entity.ServiceComboId, entity.BreedId, entity.WeightRange!);
+
+                if (existingCombo is not null)
+                {
+                    return new Response(false, 409, "Service combo already exist");
+                }
+
+                await context.AddAsync(entity);
+                await context.SaveChangesAsync();
+
+                var (responseData, _) = ServiceComboVariantConversion.FromEntity(entity, null);
+
+                return new Response(true, 201, "Service combo variant created")
+                {
+                    Data = new { data = responseData }
+                };
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
+                return new Response(false, 500, "Internal Server Error");
+            }
+
+        }
+
+        public async Task<Response> DeleteAsync(Guid serviceComboId, Guid breedId, string WeightRange)
+        {
+            try
+            {
+                var serviceComboVariant = await FindByKey(serviceComboId, breedId, WeightRange);
+
+                if (serviceComboVariant is null)
+                {
+                    return new Response(false, 404, "Service combo variant not found");
+                }
+
+                context.Remove(serviceComboVariant);
+                await context.SaveChangesAsync();
+
+                return new Response(true, 200, "Service combo variant deleted");
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
+                return new Response(false, 500, "Internal Server Error");
+            }
+        }
+
+        public async Task<ServiceComboVariant> FindByKey(Guid serviceComboId, Guid breedId, string WeightRange)
+        {
+            return await context.ServiceComboVariants
+                .Where(x => x.ServiceComboId == serviceComboId && x.BreedId == breedId && x.WeightRange == WeightRange)
+                .FirstOrDefaultAsync() ?? null!;
+        }
+
+        public async Task<Response> GetByKeyAsync(Guid serviceComboId, Guid breedId, string WeightRange)
+        {
+            try
+            {
+                var serviceComboVariant = await FindByKey(serviceComboId, breedId, WeightRange);
+
+                if (serviceComboVariant is null)
+                {
+                    return new Response(false, 404, "Service combo variant not found");
+                }
+
+                var (responseData, _) = ServiceComboVariantConversion.FromEntity(serviceComboVariant, null);
+
+                return new Response(true, 200, "Service combo variant found")
+                {
+                    Data = new { data = responseData }
+                };
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
+                return new Response(false, 500, "Internal Server Error");
+            }
+        }
+
+        public async Task<Response> GetByServiceComboAsync(Guid serviceComboId)
+        {
+            try
+            {
+                var serviceComboVariants = await context.ServiceComboVariants
+                    .Where(x => x.ServiceComboId == serviceComboId)
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                if (serviceComboVariants is null || serviceComboVariants.Count == 0)
+                {
+                    return new Response(false, 404, "Service combo variants not found");
+                }
+
+                var (_, responseData) = ServiceComboVariantConversion.FromEntity(null, serviceComboVariants);
+
+                return new Response(true, 200, "Service combo variants found")
+                {
+                    Data = new { data = responseData }
+                };
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
+                return new Response(false, 500, "Internal Server Error");
+            }
+        }
+
+        public async Task<Response> UpdateAsync(Guid serviceComboId, Guid breedId, string WeightRange, decimal comboPrice)
+        {
+            try
+            {
+                var serviceComboVariant = await FindByKey(serviceComboId, breedId, WeightRange);
+
+                if (serviceComboVariant is null)
+                {
+                    return new Response(false, 404, "Service combo variant not found");
+                }
+
+                serviceComboVariant.ComboPrice = comboPrice;
+
+                context.Update(serviceComboVariant);
+                await context.SaveChangesAsync();
+
+                var (responseData, _) = ServiceComboVariantConversion.FromEntity(serviceComboVariant, null);
+
+                return new Response(true, 200, "Service combo variant updated")
+                {
+                    Data = new { data = responseData }
+                };
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
+                return new Response(false, 500, "Internal Server Error");
+            }
+        }
+
+        public Task<Response> UpdateAsync(Guid id, ServiceComboVariant entity)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Response> DeleteAsync(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Response> GetAllAsync(int pageIndex, int pageSize)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Response> GetByAsync(Expression<Func<ServiceComboVariant, bool>> predicate)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Response> GetByIdAsync(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+    }
+}

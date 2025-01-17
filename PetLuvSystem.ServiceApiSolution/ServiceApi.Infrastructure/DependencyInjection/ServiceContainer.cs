@@ -19,7 +19,7 @@ namespace ServiceApi.Infrastructure.DependencyInjection
             services.AddScoped<IService, ServiceRepository>();
             services.AddScoped<IServiceCombo, ServiceComboRepository>();
             services.AddScoped<IServiceComboMapping, ServiceComboMappingRepository>();
-            services.AddScoped<IServiceComboVariant, ServiceComboPriceRepository>();
+            services.AddScoped<IServiceComboVariant, ServiceComboVariantRepository>();
             services.AddScoped<IServiceImage, ServiceImageRepository>();
             services.AddScoped<IServiceVariant, ServiceVariantRepository>();
             services.AddScoped<IWalkDogServiceVariant, WalkDogServiceVariantRepository>();

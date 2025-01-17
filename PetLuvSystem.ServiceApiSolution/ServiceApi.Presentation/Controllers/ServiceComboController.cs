@@ -9,7 +9,7 @@ namespace ServiceApi.Presentation.Controllers
 {
     [Route("api/service-combos")]
     [ApiController]
-    public class ServiceComboController(IServiceCombo _serviceCombo) : ControllerBase
+    public class ServiceComboController(IServiceCombo _serviceCombo, IServiceComboVariant serviceComboVariant) : ControllerBase
     {
         [HttpGet]
         public async Task<IActionResult> GetAllServiceCombos([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
@@ -87,6 +87,21 @@ namespace ServiceApi.Presentation.Controllers
             {
                 var response = await _serviceCombo.DeleteAsync(id);
                 return response.ToActionResult(this);
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
+                return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error");
+            }
+        }
+
+        [HttpGet("{serviceComboId}/service-combo-variants")]
+        public async Task<IActionResult> GetComboVariantsByService([FromRoute] Guid serviceComboId)
+        {
+            try
+            {
+                var serviceComboVariants = await serviceComboVariant.GetByServiceComboAsync(serviceComboId);
+                return serviceComboVariants.ToActionResult(this);
             }
             catch (Exception ex)
             {
