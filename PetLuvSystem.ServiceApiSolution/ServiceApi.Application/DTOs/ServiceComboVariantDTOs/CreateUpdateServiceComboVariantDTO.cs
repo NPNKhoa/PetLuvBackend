@@ -5,6 +5,7 @@
         Guid ServiceComboId,
         Guid BreedId,
         string? WeightRange,
-        decimal ComboPrice
+        decimal ComboPrice,
+        bool IsVisible
     );
 }

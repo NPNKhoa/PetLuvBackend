@@ -5,6 +5,7 @@
         Guid ServiceId,
         Guid BreedId,
         string PetWeightRange,
-        decimal Price
+        decimal Price,
+        bool IsVisible
     );
 }

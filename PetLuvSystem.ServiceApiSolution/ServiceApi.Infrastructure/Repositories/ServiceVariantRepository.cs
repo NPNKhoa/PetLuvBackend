@@ -70,12 +70,7 @@ namespace ServiceApi.Infrastructure.Repositories
         {
             try
             {
-                var serviceVariant = await context.ServiceVariants
-                        .Where(s => s.ServiceId == serviceId
-                                && s.BreedId == breedId
-                                && s.PetWeightRange!.Trim() == petWeightRange.Trim())
-                        .AsNoTracking()
-                        .FirstOrDefaultAsync();
+                var serviceVariant = await FindByKeyAsync(serviceId, breedId, petWeightRange, true);
 
                 if (serviceVariant is null)
                 {
@@ -122,16 +117,11 @@ namespace ServiceApi.Infrastructure.Repositories
             }
         }
 
-        public Task<Response> GetAllAsync(int pageIndex, int pageSize)
-        {
-            throw new NotImplementedException();
-        }
-
         public async Task<Response> UpdateAsync(Guid serviceId, Guid breedId, string petWeightRange, decimal price)
         {
             try
             {
-                var existingServiceVariant = await FindByKeyAsync(serviceId, breedId, petWeightRange);
+                var existingServiceVariant = await FindByKeyAsync(serviceId, breedId, petWeightRange, false);
 
                 if (existingServiceVariant is null)
                 {
@@ -168,17 +158,27 @@ namespace ServiceApi.Infrastructure.Repositories
         {
             try
             {
-                var existingServiceVariant = await FindByKeyAsync(serviceId, breedId, petWeightRange);
+                var existingServiceVariant = await FindByKeyAsync(serviceId, breedId, petWeightRange, false);
 
                 if (existingServiceVariant is null)
                 {
                     return new Response(false, 404, "Service Variant not found");
                 }
 
+                var (responseData, _) = ServiceVariantConversion.FromEntity(existingServiceVariant, null);
+
+                if (existingServiceVariant.IsVisible == true)
+                {
+                    existingServiceVariant.IsVisible = false;
+                    await context.SaveChangesAsync();
+                    return new Response(false, 400, "Service Variant was made as hidden successfully")
+                    {
+                        Data = new { data = responseData }
+                    };
+                }
+
                 context.Remove(existingServiceVariant);
                 await context.SaveChangesAsync();
-
-                var (responseData, _) = ServiceVariantConversion.FromEntity(existingServiceVariant, null);
 
                 return new Response(true, 200, "Service Variant deleted successfully")
                 {
@@ -190,6 +190,20 @@ namespace ServiceApi.Infrastructure.Repositories
                 LogException.LogExceptions(ex);
                 return new Response(false, 500, "Internal Server Error");
             }
+        }
+
+        public async Task<ServiceVariant> FindByKeyAsync(Guid serviceId, Guid breedId, string petWeightRange, bool noTracking = false)
+        {
+            var query = context.ServiceVariants.Where(s => s.ServiceId == serviceId
+                                && s.BreedId == breedId
+                                && s.PetWeightRange!.Trim() == petWeightRange.Trim());
+
+            if (noTracking)
+            {
+                query = query.AsNoTracking();
+            }
+
+            return await query.FirstOrDefaultAsync() ?? null!;
         }
 
         public Task<Response> GetByIdAsync(Guid id)
@@ -206,14 +220,9 @@ namespace ServiceApi.Infrastructure.Repositories
         {
             throw new NotImplementedException();
         }
-
-        public async Task<ServiceVariant> FindByKeyAsync(Guid serviceId, Guid breedId, string petWeightRange)
+        public Task<Response> GetAllAsync(int pageIndex, int pageSize)
         {
-            return await context.ServiceVariants
-                        .Where(s => s.ServiceId == serviceId
-                                && s.BreedId == breedId
-                                && s.PetWeightRange!.Trim() == petWeightRange.Trim())
-                        .FirstOrDefaultAsync() ?? null!;
+            throw new NotImplementedException();
         }
     }
 }

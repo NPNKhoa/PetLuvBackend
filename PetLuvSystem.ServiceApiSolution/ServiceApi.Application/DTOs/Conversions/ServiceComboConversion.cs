@@ -42,6 +42,7 @@ namespace ServiceApi.Application.DTOs.Conversions
                         x.BreedId,
                         x.WeightRange,
                         x.ComboPrice,
+                        x.IsVisible,
                         x.ServiceCombo
                     )).ToList(),
                     serviceCombo.ServiceComboMappings?.Select(x => new ServiceDTO(
@@ -70,6 +71,7 @@ namespace ServiceApi.Application.DTOs.Conversions
                         x.BreedId,
                         x.WeightRange,
                         x.ComboPrice,
+                        x.IsVisible,
                         x.ServiceCombo
                     )).ToList(),
                     p.ServiceComboMappings?.Select(x => new ServiceDTO(

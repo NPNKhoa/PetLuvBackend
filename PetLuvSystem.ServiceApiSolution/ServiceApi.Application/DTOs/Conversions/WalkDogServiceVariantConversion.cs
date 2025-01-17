@@ -9,7 +9,8 @@ namespace ServiceApi.Application.DTOs.Conversions
         {
             ServiceId = dto.ServiceId,
             BreedId = dto.BreedId,
-            PricePerPeriod = dto.PricePerPeriod
+            PricePerPeriod = dto.PricePerPeriod,
+            IsVisible = dto.IsVisible
         };
 
         public static (WalkDogServiceVariantDTO?, IEnumerable<WalkDogServiceVariantDTO>?) FromEntity(WalkDogServiceVariant? serviceVariant, IEnumerable<WalkDogServiceVariant>? serviceVariants)
@@ -20,7 +21,8 @@ namespace ServiceApi.Application.DTOs.Conversions
                 (
                     serviceVariant.ServiceId,
                     serviceVariant.BreedId,
-                    serviceVariant.PricePerPeriod
+                    serviceVariant.PricePerPeriod,
+                    serviceVariant.IsVisible
                 );
                 return (singleServiceVariant, null);
             }
@@ -31,7 +33,8 @@ namespace ServiceApi.Application.DTOs.Conversions
                 (
                     p.ServiceId,
                     p.BreedId,
-                    p.PricePerPeriod
+                    p.PricePerPeriod,
+                    p.IsVisible
                 )).ToList();
 
                 return (null, _serviceVariants);

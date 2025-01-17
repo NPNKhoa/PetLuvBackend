@@ -8,6 +8,7 @@ namespace ServiceApi.Application.DTOs.ServiceComboVariantDTOs
         Guid BreedId,
         string? WeightRange,
         decimal ComboPrice,
+        bool IsVisible,
         ServiceCombo? ServiceCombo
     );
 }

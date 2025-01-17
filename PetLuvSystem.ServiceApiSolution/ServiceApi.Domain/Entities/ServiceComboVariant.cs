@@ -6,6 +6,7 @@
         public Guid BreedId { get; set; }
         public string? WeightRange { get; set; }
         public decimal ComboPrice { get; set; }
+        public bool IsVisible { get; set; }
 
         public virtual ServiceCombo? ServiceCombo { get; set; }
     }

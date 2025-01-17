@@ -4,6 +4,7 @@
     (
         Guid ServiceId,
         Guid BreedId,
-        decimal PricePerPeriod
+        decimal PricePerPeriod,
+        bool IsVisible
     );
 }

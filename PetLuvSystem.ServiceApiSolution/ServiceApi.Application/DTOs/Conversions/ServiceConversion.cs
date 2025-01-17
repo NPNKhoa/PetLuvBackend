@@ -68,13 +68,15 @@ namespace ServiceApi.Application.DTOs.Conversions
                         p.ServiceId,
                         p.BreedId,
                         p.PetWeightRange!,
-                        p.Price
+                        p.Price,
+                        p.IsVisible
                     )).ToList(),
                     service.WalkDogServiceVariants?.Select(p => new WalkDogServiceVariantDTO
                     (
                         p.ServiceId,
                         p.BreedId,
-                        p.PricePerPeriod
+                        p.PricePerPeriod,
+                        p.IsVisible
                     )).ToList()
                 );
                 return (singleService, null);
@@ -95,13 +97,15 @@ namespace ServiceApi.Application.DTOs.Conversions
                         variant.ServiceId,
                         variant.BreedId,
                         variant.PetWeightRange!,
-                        variant.Price
+                        variant.Price,
+                        variant.IsVisible
                     )).ToList() ?? new List<ServiceVariantDTO>(),
                     p.WalkDogServiceVariants?.Select(walkVariant => new WalkDogServiceVariantDTO
                     (
                         walkVariant.ServiceId,
                         walkVariant.BreedId,
-                        walkVariant.PricePerPeriod
+                        walkVariant.PricePerPeriod,
+                        walkVariant.IsVisible
                     )).ToList() ?? new List<WalkDogServiceVariantDTO>()
                 )).ToList();
 

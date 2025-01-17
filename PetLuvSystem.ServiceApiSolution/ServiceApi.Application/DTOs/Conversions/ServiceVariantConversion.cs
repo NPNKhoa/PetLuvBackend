@@ -10,7 +10,8 @@ namespace ServiceApi.Application.DTOs.Conversions
             ServiceId = dto.ServiceId,
             BreedId = dto.BreedId,
             PetWeightRange = dto.PetWeightRange,
-            Price = dto.Price
+            Price = dto.Price,
+            IsVisible = dto.IsVisible
         };
 
         public static ServiceVariant ToEntity(CreateUpdateServiceVariantDTO dto) => new()
@@ -18,7 +19,8 @@ namespace ServiceApi.Application.DTOs.Conversions
             ServiceId = dto.ServiceId,
             BreedId = dto.BreedId,
             PetWeightRange = dto.PetWeightRange,
-            Price = dto.Price
+            Price = dto.Price,
+            IsVisible = dto.IsVisible
         };
 
         public static (ServiceVariantDTO?, IEnumerable<ServiceVariantDTO>?) FromEntity(ServiceVariant? serviceVariant, IEnumerable<ServiceVariant>? serviceVariants)
@@ -30,7 +32,8 @@ namespace ServiceApi.Application.DTOs.Conversions
                     serviceVariant.ServiceId,
                     serviceVariant.BreedId,
                     serviceVariant.PetWeightRange!,
-                    serviceVariant.Price
+                    serviceVariant.Price,
+                    serviceVariant.IsVisible
                 );
                 return (singleServiceVariant, null);
             }
@@ -42,7 +45,8 @@ namespace ServiceApi.Application.DTOs.Conversions
                     p.ServiceId,
                     p.BreedId,
                     p.PetWeightRange!,
-                    p.Price
+                    p.Price,
+                    p.IsVisible
                 )).ToList();
 
                 return (null, _serviceVariants);

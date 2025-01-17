@@ -11,7 +11,7 @@ namespace ServiceApi.Application.Interfaces
         public Task<Response> UpdateAsync(Guid serviceId, Guid breedId, string petWeightRange, decimal price);
         public Task<Response> GetByServiceAsync(Guid serviceId);
 
-        public Task<ServiceVariant> FindByKeyAsync(Guid serviceId, Guid breedId, string petWeightRange);
+        public Task<ServiceVariant> FindByKeyAsync(Guid serviceId, Guid breedId, string petWeightRange, bool noTracking);
 
     }
 }

@@ -51,12 +51,25 @@ namespace ServiceApi.Infrastructure.Repositories
                     return new Response(false, 404, "Service Variant Not Found");
                 }
 
+                var (responseData, _) = WalkDogServiceVariantConversion.FromEntity(existingVariant, null);
+
+                if (existingVariant.IsVisible)
+                {
+                    existingVariant.IsVisible = false;
+                    await context.SaveChangesAsync();
+
+                    return new Response(true, 200, "Service Variant was made as hidden successfully")
+                    {
+                        Data = new { data = responseData }
+                    };
+                }
+
                 context.WalkDogServiceVariants.Remove(existingVariant);
                 await context.SaveChangesAsync();
 
                 return new Response(true, 200, "Service Variant deleted successfully")
                 {
-                    Data = new { data = existingVariant }
+                    Data = new { data = responseData }
                 };
             }
             catch (Exception ex)
@@ -66,16 +79,11 @@ namespace ServiceApi.Infrastructure.Repositories
             }
         }
 
-        public async Task<WalkDogServiceVariant> FindByKeyAsync(Guid serviceId, Guid breedId)
-        {
-            return await context.WalkDogServiceVariants.Where(x => x.ServiceId == serviceId && x.BreedId == breedId).FirstOrDefaultAsync() ?? null!;
-        }
-
         public async Task<Response> GetByKeyAsync(Guid serviceId, Guid breedId)
         {
             try
             {
-                var serviceVariant = await FindByKeyAsync(serviceId, breedId);
+                var serviceVariant = await FindByKeyAsync(serviceId, breedId, true);
 
                 if (serviceVariant == null)
                 {
@@ -150,6 +158,18 @@ namespace ServiceApi.Infrastructure.Repositories
                 LogException.LogExceptions(ex);
                 return new Response(false, 500, "Internal Server Error");
             }
+        }
+
+        public async Task<WalkDogServiceVariant> FindByKeyAsync(Guid serviceId, Guid breedId, bool noTracking = false)
+        {
+            var query = context.WalkDogServiceVariants.Where(x => x.ServiceId == serviceId && x.BreedId == breedId);
+
+            if (noTracking)
+            {
+                query = query.AsNoTracking();
+            }
+
+            return await query.FirstOrDefaultAsync() ?? null!;
         }
 
         public Task<Response> DeleteAsync(Guid id)

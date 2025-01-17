@@ -51,10 +51,26 @@ namespace ServiceApi.Infrastructure.Repositories
                     return new Response(false, 404, "Service combo variant not found");
                 }
 
+                var (responseData, _) = ServiceComboVariantConversion.FromEntity(serviceComboVariant, null!);
+
+                if (serviceComboVariant.IsVisible)
+                {
+                    serviceComboVariant.IsVisible = false;
+                    await context.SaveChangesAsync();
+
+                    return new Response(true, 200, "Service combo variant was made hidden successfully")
+                    {
+                        Data = new { data = responseData }
+                    };
+                }
+
                 context.Remove(serviceComboVariant);
                 await context.SaveChangesAsync();
 
-                return new Response(true, 200, "Service combo variant deleted");
+                return new Response(true, 200, "Service combo variant deleted")
+                {
+                    Data = new { data = responseData }
+                };
             }
             catch (Exception ex)
             {
@@ -63,18 +79,24 @@ namespace ServiceApi.Infrastructure.Repositories
             }
         }
 
-        public async Task<ServiceComboVariant> FindByKey(Guid serviceComboId, Guid breedId, string WeightRange)
+        public async Task<ServiceComboVariant> FindByKey(Guid serviceComboId, Guid breedId, string WeightRange, bool noTracking = false)
         {
-            return await context.ServiceComboVariants
-                .Where(x => x.ServiceComboId == serviceComboId && x.BreedId == breedId && x.WeightRange == WeightRange)
-                .FirstOrDefaultAsync() ?? null!;
+            var query = context.ServiceComboVariants
+                .Where(x => x.ServiceComboId == serviceComboId && x.BreedId == breedId && x.WeightRange == WeightRange);
+
+            if (noTracking)
+            {
+                query = query.AsNoTracking();
+            }
+
+            return await query.FirstOrDefaultAsync() ?? null!;
         }
 
         public async Task<Response> GetByKeyAsync(Guid serviceComboId, Guid breedId, string WeightRange)
         {
             try
             {
-                var serviceComboVariant = await FindByKey(serviceComboId, breedId, WeightRange);
+                var serviceComboVariant = await FindByKey(serviceComboId, breedId, WeightRange, true);
 
                 if (serviceComboVariant is null)
                 {
