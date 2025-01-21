@@ -93,7 +93,7 @@ namespace ServiceApi.Presentation.Controllers
 
                     var trigger = TriggerBuilder.Create()
                         .WithIdentity($"DeleteServiceTrigger-{service.ServiceId}")
-                        .StartAt(DateTimeOffset.Now.AddMinutes(1)) // Thời gian 30 phút
+                        .StartAt(DateTimeOffset.Now.AddMinutes(30)) // Thời gian 30 phút
                         .Build();
 
                     await scheduler.ScheduleJob(jobDetail, trigger);

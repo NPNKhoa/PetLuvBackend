@@ -3,13 +3,14 @@ using PetLuvSystem.SharedLibrary.Logs;
 using PetLuvSystem.SharedLibrary.Responses;
 using ServiceApi.Application.DTOs.Conversions;
 using ServiceApi.Application.DTOs.ServiceComboDTOs;
+using ServiceApi.Application.DTOs.ServiceComboMappingDTOs;
 using ServiceApi.Application.Interfaces;
 
 namespace ServiceApi.Presentation.Controllers
 {
     [Route("api/service-combos")]
     [ApiController]
-    public class ServiceComboController(IServiceCombo _serviceCombo, IServiceComboVariant serviceComboVariant) : ControllerBase
+    public class ServiceComboController(IServiceCombo _serviceCombo, IServiceComboMapping _serviceComboMapping, IServiceComboVariant serviceComboVariant) : ControllerBase
     {
         [HttpGet]
         public async Task<IActionResult> GetAllServiceCombos([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
@@ -41,6 +42,21 @@ namespace ServiceApi.Presentation.Controllers
             }
         }
 
+        [HttpGet("{serviceComboId}/services")]
+        public async Task<IActionResult> GetServicesByCombo(Guid serviceComboId)
+        {
+            try
+            {
+                var response = await _serviceComboMapping.GetServicesByCombo(serviceComboId);
+                return response.ToActionResult(this);
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
+                return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error");
+            }
+        }
+
         [HttpPost]
         public async Task<IActionResult> CreateServiceCombo([FromBody] CreateUpdateServiceComboDTO dto)
         {
@@ -55,6 +71,29 @@ namespace ServiceApi.Presentation.Controllers
             {
                 var entity = ServiceComboConversion.ToEntity(dto);
                 var response = await _serviceCombo.CreateAsync(entity);
+                return response.ToActionResult(this);
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
+                return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error");
+            }
+        }
+
+        [HttpPost("/add-service")]
+        public async Task<IActionResult> AddServiceToCombo([FromBody] CreateUpdateServiceComboMappingDTO dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errorMessage = string.Join("; ",
+                    ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+                return BadRequest(new Response(false, 400, errorMessage));
+            }
+
+            try
+            {
+                var entity = ServiceComboMappingConversion.ToEntity(dto);
+                var response = await _serviceComboMapping.CreateAsync(entity);
                 return response.ToActionResult(this);
             }
             catch (Exception ex)

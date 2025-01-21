@@ -68,12 +68,12 @@ namespace ServiceApi.Presentation.Controllers
             }
         }
 
-        [HttpGet("{serviceId}/{breedId}/{weightRange}")]
-        public async Task<IActionResult> GetServiceComboVariant([FromRoute] Guid serviceId, [FromRoute] Guid breedId, [FromRoute] string weightRange)
+        [HttpGet("{serviceComboId}/{breedId}/{weightRange}")]
+        public async Task<IActionResult> GetServiceComboVariantByKey([FromRoute] Guid serviceComboId, [FromRoute] Guid breedId, [FromRoute] string weightRange)
         {
             try
             {
-                var response = await _serviceComboVariant.GetByKeyAsync(serviceId, breedId, weightRange);
+                var response = await _serviceComboVariant.GetByKeyAsync(serviceComboId, breedId, weightRange);
 
                 return response.ToActionResult(this);
             }

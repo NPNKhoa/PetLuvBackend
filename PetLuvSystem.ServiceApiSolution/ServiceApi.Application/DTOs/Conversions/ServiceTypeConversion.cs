@@ -1,4 +1,5 @@
-﻿using ServiceApi.Application.DTOs.ServiceTypeDTOs;
+﻿using ServiceApi.Application.DTOs.ServiceDTOs;
+using ServiceApi.Application.DTOs.ServiceTypeDTOs;
 using ServiceApi.Domain.Entities;
 
 namespace ServiceApi.Application.DTOs.Conversions
@@ -30,7 +31,13 @@ namespace ServiceApi.Application.DTOs.Conversions
                     serviceType.ServiceTypeId,
                     serviceType.ServiceTypeName,
                     serviceType.ServiceTypeDesc,
-                    serviceType.IsVisible
+                    serviceType.IsVisible,
+                    serviceType.Services?.Select(s => new BriefServiceDTO(
+                        s.ServiceTypeId,
+                        s.ServiceName,
+                        s.ServiceDesc,
+                        s.IsVisible
+                    )).ToList()!
                 );
                 return (singleServiceType, null);
             }
@@ -41,7 +48,13 @@ namespace ServiceApi.Application.DTOs.Conversions
                     p.ServiceTypeId,
                     p.ServiceTypeName,
                     p.ServiceTypeDesc,
-                    p.IsVisible
+                    p.IsVisible,
+                    p.Services?.Select(s => new BriefServiceDTO(
+                        s.ServiceTypeId,
+                        s.ServiceName,
+                        s.ServiceDesc,
+                        s.IsVisible
+                    )).ToList()!
                 )).ToList();
 
                 return (null, _serviceTypes);

@@ -1,12 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ServiceApi.Application.DTOs.ServiceDTOs;
 
 namespace ServiceApi.Application.DTOs.ServiceTypeDTOs
 {
-    public record ServiceTypeDTO
-    (
-        [Required] Guid ServiceTypeId,
-        [Required] string? ServiceTypeName,
+    public record ServiceTypeDTO(
+        Guid ServiceTypeId,
+        string? ServiceTypeName,
         string? ServiceTypeDesc,
-        bool IsVisible = false
+        bool IsVisible,
+        ICollection<BriefServiceDTO>? Services
     );
 }

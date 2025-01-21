@@ -171,7 +171,7 @@ namespace ServiceApi.Infrastructure.Repositories
                 {
                     existingServiceVariant.IsVisible = false;
                     await context.SaveChangesAsync();
-                    return new Response(false, 400, "Service Variant was made as hidden successfully")
+                    return new Response(false, 200, "Service Variant was made as hidden successfully")
                     {
                         Data = new { data = responseData }
                     };

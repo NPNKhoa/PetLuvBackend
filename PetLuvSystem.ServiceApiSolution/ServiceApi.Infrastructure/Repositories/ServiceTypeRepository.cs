@@ -140,11 +140,19 @@ namespace ServiceApi.Infrastructure.Repositories
         {
             try
             {
-                var existingServiceType = await context.ServiceTypes.FindAsync(id);
+                var existingServiceType = await FindByIdAsync(id, true, true);
 
-                return existingServiceType is not null ?
-                    new Response(true, 200, "Service type retrived succesfully") { Data = new { data = existingServiceType } } :
-                    new Response(false, 404, "No service type found");
+                if (existingServiceType is null)
+                {
+                    return new Response(false, 404, "No service type found");
+                }
+
+                var (responseData, _) = ServiceTypeConversion.FromEntity(existingServiceType, null);
+
+                return new Response(true, 200, "Service type retrived succesfully")
+                {
+                    Data = new { data = responseData }
+                };
             }
             catch (Exception ex)
             {
@@ -204,9 +212,21 @@ namespace ServiceApi.Infrastructure.Repositories
             }
         }
 
-        public async Task<ServiceType> FindByIdAsync(Guid id)
+        public async Task<ServiceType> FindByIdAsync(Guid id, bool noTracking = false, bool includeServices = false)
         {
-            return await context.ServiceTypes.FindAsync(id) ?? null!;
+            var query = context.ServiceTypes.Where(x => x.ServiceTypeId == id);
+
+            if (noTracking == true)
+            {
+                query = query.AsNoTracking();
+            }
+
+            if (includeServices == true)
+            {
+                query = query.Include(x => x.Services);
+            }
+
+            return await query.FirstOrDefaultAsync() ?? null!;
         }
     }
 }
