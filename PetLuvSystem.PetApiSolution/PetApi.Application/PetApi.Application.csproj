@@ -12,8 +12,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="DTOs\Conversions\" />
-    <Folder Include="Interfaces\" />
+    <Folder Include="DTOs\SellingPetDTOs\" />
+    <Folder Include="DTOs\PetHealthBookDetailDTOs\" />
+    <Folder Include="DTOs\PetHealthBookDTOs\" />
   </ItemGroup>
 
 </Project>

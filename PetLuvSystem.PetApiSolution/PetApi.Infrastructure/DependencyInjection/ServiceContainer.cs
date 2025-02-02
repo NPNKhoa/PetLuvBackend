@@ -1,0 +1,35 @@
+﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using PetApi.Application.Interfaces;
+using PetApi.Infrastructure.Data;
+using PetApi.Infrastructure.Repositories;
+using PetLuvSystem.SharedLibrary.DependencyInjections;
+
+namespace PetApi.Infrastructure.DependencyInjection
+{
+    public static class ServiceContainer
+    {
+        public static IServiceCollection AddInfrastructureService(this IServiceCollection services, IConfiguration config)
+        {
+            SharedServiceContainer.AddSharedServices<PetDbContext>(services, config);
+
+            services.AddScoped<IPetType, PetTypeRepository>();
+            services.AddScoped<IPetBreed, PetBreedRepository>();
+            services.AddScoped<IPetHealthBook, PetHealthBookRepository>();
+            services.AddScoped<IPetHealthBookDetail, PetHealthBookDetailRepository>();
+            services.AddScoped<IPetType, PetTypeRepository>();
+            services.AddScoped<IPet, PetRepository>();
+            services.AddScoped<ISellingPet, SellingPetRepository>();
+
+            return services;
+        }
+
+        public static IApplicationBuilder UseInfrastructurePolicy(this IApplicationBuilder app)
+        {
+            SharedServiceContainer.UseSharedPolicies(app);
+
+            return app;
+        }
+    }
+}

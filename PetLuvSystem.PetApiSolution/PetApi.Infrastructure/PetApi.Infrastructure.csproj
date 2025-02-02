@@ -10,10 +10,4 @@
     <ProjectReference Include="..\PetApi.Application\PetApi.Application.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Data\" />
-    <Folder Include="DependencyInjection\" />
-    <Folder Include="Repositories\" />
-  </ItemGroup>
-
 </Project>
