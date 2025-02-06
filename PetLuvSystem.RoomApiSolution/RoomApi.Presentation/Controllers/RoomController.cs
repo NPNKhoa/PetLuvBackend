@@ -9,7 +9,7 @@ using RoomApi.Domain.Entities;
 
 namespace RoomApi.Presentation.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/rooms")]
     [ApiController]
     public class RoomController(IRoom _room, IRoomType _roomType) : ControllerBase
     {

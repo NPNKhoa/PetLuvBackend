@@ -11,6 +11,8 @@ builder.Services.AddInfrastructureService(builder.Configuration);
 
 var app = builder.Build();
 
+app.UseStaticFiles();
+
 app.UseInfrastructurePolicy();
 
 app.UseSwagger();

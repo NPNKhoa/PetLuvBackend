@@ -9,6 +9,7 @@ builder.Services.AddInfrastructureService(builder.Configuration);
 try
 {
     var app = builder.Build();
+    app.UseStaticFiles();
     app.UseInfrastructurePolicy();
     //app.UseSwagger();
     //app.UseSwaggerUI();

@@ -88,6 +88,7 @@ namespace PetApi.Infrastructure.Repositories
                 var petTypes = await _context.PetTypes
                     .Skip((pageIndex - 1) * pageSize)
                     .Take(pageSize)
+                    .Include(pt => pt.PetBreeds)
                     .ToListAsync();
 
                 if (petTypes is null || petTypes.Count == 0)
