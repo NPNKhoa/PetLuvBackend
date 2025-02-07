@@ -33,7 +33,6 @@ namespace PetLuvSystem.SharedLibrary.DependencyInjections
         public static IApplicationBuilder UseSharedPolicies(this IApplicationBuilder app)
         {
             app.UseCorsPolicy();
-
             app.UseMiddleware<GlobalException>();
 
             //app.UseMiddleware<ListenToOnlyApiGateway>();

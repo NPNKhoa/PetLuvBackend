@@ -129,10 +129,15 @@ namespace UserApi.Infrastructure.Repository
                 }
 
                 var token = GenerateToken(existingUser);
+                var (responseUser, _) = UserConversion.FromEntity(existingUser, null!);
 
                 return new Response(true, 200, "Đăng nhập thành công")
                 {
-                    Data = token
+                    Data = new
+                    {
+                        token,
+                        user = responseUser
+                    }
                 };
             }
             catch (Exception ex)

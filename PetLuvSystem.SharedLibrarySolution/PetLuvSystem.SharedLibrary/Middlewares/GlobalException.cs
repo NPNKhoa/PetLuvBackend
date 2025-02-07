@@ -64,6 +64,11 @@ namespace PetLuvSystem.SharedLibrary.Middlewares
 
         private static async Task ModifyHeader(HttpContext context, string title, string message, int statusCode)
         {
+            if (context.Response.HasStarted)
+            {
+                return;
+            }
+
             context.Response.ContentType = "application/json";
             await context.Response.WriteAsync(JsonSerializer.Serialize(new ProblemDetails()
             {
