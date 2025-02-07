@@ -214,6 +214,33 @@ namespace PetApi.Infrastructure.Repositories
             }
         }
 
+        public async Task<Response> GetBreedMapping(bool showHidden = false)
+        {
+            try
+            {
+                var petBreeds = await _context.PetBreeds
+                    .Where(pb => showHidden || pb.IsVisible)
+                    .ToListAsync();
+
+                if (petBreeds is null || petBreeds.Count == 0)
+                {
+                    return new Response(false, 404, "No Pet Breeds found");
+                }
+
+                var (_, responseData) = BreedMappingConversion.FromEntity(null, petBreeds);
+
+                return new Response(true, 200, "Pet Breeds retrieved successfully!")
+                {
+                    Data = responseData
+                };
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
+                return new Response(false, 500, "Internal Server Error");
+            }
+        }
+
         public async Task<PetBreed> FindById(Guid id, bool noTracking = false, bool include = false)
         {
             var query = _context.PetBreeds.Where(pb => pb.BreedId == id);

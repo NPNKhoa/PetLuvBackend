@@ -7,7 +7,7 @@ using PetLuvSystem.SharedLibrary.Responses;
 
 namespace PetApi.Presentation.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/pet-breeds")]
     [ApiController]
     public class PetBreedController(IPetBreed _petBreed, IPetType _petType) : ControllerBase
     {
@@ -17,6 +17,21 @@ namespace PetApi.Presentation.Controllers
             try
             {
                 var response = await _petBreed.GetAllAsync(pageIndex, pageSize);
+                return response.ToActionResult(this);
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
+                return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error");
+            }
+        }
+
+        [HttpGet("mapping")]
+        public async Task<IActionResult> GetBreedMapping([FromQuery] bool showHidden = false)
+        {
+            try
+            {
+                var response = await _petBreed.GetBreedMapping();
                 return response.ToActionResult(this);
             }
             catch (Exception ex)

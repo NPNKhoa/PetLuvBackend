@@ -11,7 +11,7 @@ namespace PetLuvSystem.SharedLibrary.DependencyInjections
             {
                 options.AddPolicy("AllowFrontend", builder =>
                 {
-                    builder.WithOrigins("http://localhost:3000")
+                    builder.WithOrigins("http://localhost:3000", "http://localhost:5010", "http://localhost:5115")
                            .AllowAnyHeader()
                            .AllowAnyMethod();
 

@@ -4,6 +4,7 @@
     (
         Guid ServiceId,
         Guid BreedId,
+        string BreedName,
         string PetWeightRange,
         decimal Price,
         bool IsVisible

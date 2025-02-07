@@ -5,6 +5,6 @@ namespace ServiceApi.Application.Interfaces
 {
     public interface IService : IGenericInterface<Service>
     {
-        public Task<Service> FindServiceById(Guid id);
+        public Task<Service> FindServiceById(Guid id, bool noTracking = false, bool includeOthers = false);
     }
 }

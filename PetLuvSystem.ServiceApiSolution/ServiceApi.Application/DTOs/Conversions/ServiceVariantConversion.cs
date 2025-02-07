@@ -31,6 +31,7 @@ namespace ServiceApi.Application.DTOs.Conversions
                 (
                     serviceVariant.ServiceId,
                     serviceVariant.BreedId,
+                    string.Empty,
                     serviceVariant.PetWeightRange!,
                     serviceVariant.Price,
                     serviceVariant.IsVisible
@@ -44,6 +45,7 @@ namespace ServiceApi.Application.DTOs.Conversions
                 (
                     p.ServiceId,
                     p.BreedId,
+                    string.Empty,
                     p.PetWeightRange!,
                     p.Price,
                     p.IsVisible

@@ -51,7 +51,7 @@ namespace ServiceApi.Application.DTOs.Conversions
         };
 
 
-        public static (ServiceDTO?, IEnumerable<ServiceDTO>?) FromEntity(Service? service, IEnumerable<Service>? services)
+        public static (ServiceDTO?, IEnumerable<ServiceDTO>?) FromEntity(Service? service, IEnumerable<Service>? services, Dictionary<Guid, string>? breedMapping = null)
         {
             if (service is not null && services is null)
             {
@@ -67,6 +67,7 @@ namespace ServiceApi.Application.DTOs.Conversions
                     (
                         p.ServiceId,
                         p.BreedId,
+                        (breedMapping != null && breedMapping.TryGetValue(p.BreedId, out var name)) ? name : string.Empty,
                         p.PetWeightRange!,
                         p.Price,
                         p.IsVisible
@@ -96,6 +97,7 @@ namespace ServiceApi.Application.DTOs.Conversions
                     (
                         variant.ServiceId,
                         variant.BreedId,
+                        (breedMapping != null && breedMapping.TryGetValue(variant.BreedId, out var name)) ? name : string.Empty,
                         variant.PetWeightRange!,
                         variant.Price,
                         variant.IsVisible

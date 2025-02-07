@@ -9,7 +9,7 @@ using System.Linq.Expressions;
 
 namespace ServiceApi.Infrastructure.Repositories
 {
-    public class ServiceRepository(ServiceDbContext context) : IService
+    public class ServiceRepository(ServiceDbContext context, IBreedMappingService _breedMappingClient) : IService
     {
         public async Task<Response> CreateAsync(Service entity)
         {
@@ -160,16 +160,16 @@ namespace ServiceApi.Infrastructure.Repositories
         {
             try
             {
-                var service = await FindServiceById(id);
+                var service = await FindServiceById(id, true, true);
 
                 if (service is null)
                 {
                     return new Response(false, 404, $"Can not find any service with id {id}");
                 }
 
-                context.Entry(service).State = EntityState.Detached;
+                var breedMapping = await _breedMappingClient.GetBreedMappingAsync();
 
-                var (singleService, _) = ServiceConversion.FromEntity(service, null);
+                var (singleService, _) = ServiceConversion.FromEntity(service, null, breedMapping);
 
                 return new Response(true, 200, "Service retrived successfully")
                 {
@@ -241,15 +241,24 @@ namespace ServiceApi.Infrastructure.Repositories
             }
         }
 
-        public async Task<Service> FindServiceById(Guid id)
+        public async Task<Service> FindServiceById(Guid id, bool noTracking = false, bool includeOthers = false)
         {
-            return await context.Services
-                .Include(s => s.ServiceType)
-                .Include(s => s.ServiceImages)
-                .Include(s => s.ServiceVariants)
-                .Include(s => s.WalkDogServiceVariants)
-                .FirstOrDefaultAsync(s => s.ServiceId == id)
-                ?? null!;
+            var query = context.Services.Where(s => s.ServiceId == id);
+
+            if (noTracking)
+            {
+                query = query.AsNoTracking();
+            }
+
+            if (includeOthers)
+            {
+                query = query.Include(s => s.ServiceType)
+                    .Include(s => s.ServiceImages)
+                    .Include(s => s.ServiceVariants)
+                    .Include(s => s.WalkDogServiceVariants);
+            }
+
+            return await query.FirstOrDefaultAsync() ?? null!;
         }
     }
 }

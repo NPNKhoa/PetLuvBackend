@@ -4,8 +4,10 @@ using Microsoft.Extensions.DependencyInjection;
 using PetLuvSystem.SharedLibrary.DependencyInjections;
 using Quartz;
 using ServiceApi.Application.Interfaces;
+using ServiceApi.Application.Jobs;
 using ServiceApi.Infrastructure.Data;
 using ServiceApi.Infrastructure.Repositories;
+using ServiceApi.Infrastructure.Services;
 
 namespace ServiceApi.Infrastructure.DependencyInjection
 {
@@ -24,9 +26,26 @@ namespace ServiceApi.Infrastructure.DependencyInjection
             services.AddScoped<IServiceVariant, ServiceVariantRepository>();
             services.AddScoped<IWalkDogServiceVariant, WalkDogServiceVariantRepository>();
 
+            services.AddHttpClient();
+
+            services.AddSingleton<IRedisCacheService, RedisCacheService>();
+
+            services.AddScoped<IBreedMappingService, BreedMappingService>();
+
             services.AddQuartz(q =>
             {
                 q.UseInMemoryStore();
+
+                var jobKey = new JobKey("UpdateBreedMappingJob");
+                q.AddJob<UpdateBreedMappingJob>(opts => opts.WithIdentity(jobKey));
+
+                q.AddTrigger(opts => opts
+                    .ForJob(jobKey)
+                    .WithIdentity("UpdateBreedMappingTrigger")
+                    .StartNow()
+                    .WithSimpleSchedule(x => x
+                        .WithInterval(TimeSpan.FromHours(config.GetValue<int>("Quartz:JobIntervalInHours", 1)))
+                        .RepeatForever()));
             });
 
             services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
