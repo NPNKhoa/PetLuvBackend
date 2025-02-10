@@ -80,7 +80,7 @@ namespace ServiceApi.Presentation.Controllers
             }
         }
 
-        [HttpPost("/add-service")]
+        [HttpPost("add-service")]
         public async Task<IActionResult> AddServiceToCombo([FromBody] CreateUpdateServiceComboMappingDTO dto)
         {
             if (!ModelState.IsValid)

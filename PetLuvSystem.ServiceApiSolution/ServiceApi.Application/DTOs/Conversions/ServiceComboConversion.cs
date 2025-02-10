@@ -29,7 +29,7 @@ namespace ServiceApi.Application.DTOs.Conversions
             ServiceComboMappings = new List<ServiceComboMapping>(),
         };
 
-        public static (ServiceComboDTO?, ICollection<ServiceComboDTO>?) FromEntity(ServiceCombo? serviceCombo, ICollection<ServiceCombo>? serviceCombos)
+        public static (ServiceComboDTO?, ICollection<ServiceComboDTO>?) FromEntity(ServiceCombo? serviceCombo, ICollection<ServiceCombo>? serviceCombos, Dictionary<Guid, string>? breedMapping = null)
         {
             if (serviceCombo is not null && serviceCombos is null)
             {
@@ -40,10 +40,10 @@ namespace ServiceApi.Application.DTOs.Conversions
                     serviceCombo.ServiceComboVariants?.Select(x => new ServiceComboVariantDTO(
                         x.ServiceComboId,
                         x.BreedId,
+                        (breedMapping != null && breedMapping.TryGetValue(x.BreedId, out var name)) ? name : string.Empty,
                         x.WeightRange,
                         x.ComboPrice,
-                        x.IsVisible,
-                        x.ServiceCombo
+                        x.IsVisible
                     )).ToList(),
                     serviceCombo.ServiceComboMappings?.Select(x => new ServiceDTO(
                         x.ServiceId,
@@ -69,10 +69,10 @@ namespace ServiceApi.Application.DTOs.Conversions
                     p.ServiceComboVariants?.Select(x => new ServiceComboVariantDTO(
                         x.ServiceComboId,
                         x.BreedId,
+                        (breedMapping != null && breedMapping.TryGetValue(x.BreedId, out var name)) ? name : string.Empty,
                         x.WeightRange,
                         x.ComboPrice,
-                        x.IsVisible,
-                        x.ServiceCombo
+                        x.IsVisible
                     )).ToList(),
                     p.ServiceComboMappings?.Select(x => new ServiceDTO(
                         x.ServiceId,

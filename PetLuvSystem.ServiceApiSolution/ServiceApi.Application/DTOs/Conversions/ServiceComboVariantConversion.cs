@@ -12,7 +12,6 @@ namespace ServiceApi.Application.DTOs.Conversions
             WeightRange = dto.WeightRange,
             ComboPrice = dto.ComboPrice,
             IsVisible = dto.IsVisible,
-            ServiceCombo = dto.ServiceCombo,
         };
 
         public static ServiceComboVariant ToEntity(CreateUpdateServiceComboVariantDTO dto) => new()
@@ -33,10 +32,10 @@ namespace ServiceApi.Application.DTOs.Conversions
                 (
                     serviceComboVariant.ServiceComboId,
                     serviceComboVariant.BreedId,
+                    string.Empty,
                     serviceComboVariant.WeightRange,
                     serviceComboVariant.ComboPrice,
-                    serviceComboVariant.IsVisible,
-                    serviceComboVariant.ServiceCombo
+                    serviceComboVariant.IsVisible
                 );
                 return (singleServiceComboVariant, null);
             }
@@ -47,10 +46,10 @@ namespace ServiceApi.Application.DTOs.Conversions
                 (
                     p.ServiceComboId,
                     p.BreedId,
+                    string.Empty,
                     p.WeightRange,
                     p.ComboPrice,
-                    p.IsVisible,
-                    p.ServiceCombo
+                    p.IsVisible
                 )).ToList();
 
                 return (null, _serviceComboVariants);

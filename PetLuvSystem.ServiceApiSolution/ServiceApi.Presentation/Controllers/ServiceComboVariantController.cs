@@ -7,7 +7,7 @@ using ServiceApi.Application.Interfaces;
 
 namespace ServiceApi.Presentation.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/service-combo-variants")]
     [ApiController]
     public class ServiceComboVariantController(IServiceComboVariant _serviceComboVariant) : ControllerBase
     {

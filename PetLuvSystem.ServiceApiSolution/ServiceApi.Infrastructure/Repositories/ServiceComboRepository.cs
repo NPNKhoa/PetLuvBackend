@@ -9,7 +9,7 @@ using System.Linq.Expressions;
 
 namespace ServiceApi.Infrastructure.Repositories
 {
-    public class ServiceComboRepository(ServiceDbContext context) : IServiceCombo
+    public class ServiceComboRepository(ServiceDbContext context, IBreedMappingService _breedMappingClient) : IServiceCombo
     {
         public async Task<Response> CreateAsync(ServiceCombo entity)
         {
@@ -151,14 +151,16 @@ namespace ServiceApi.Infrastructure.Repositories
         {
             try
             {
-                var serviceCombo = await FindByIdAsync(id);
+                var serviceCombo = await FindByIdAsync(id, true, true);
 
                 if (serviceCombo is null)
                 {
                     return new Response(false, 404, "Can not found service combo with this id");
                 }
 
-                var (responseData, _) = ServiceComboConversion.FromEntity(serviceCombo, null!);
+                var breedMapping = await _breedMappingClient.GetBreedMappingAsync();
+
+                var (responseData, _) = ServiceComboConversion.FromEntity(serviceCombo, null!, breedMapping);
 
                 return new Response(true, 200, "Service combo retrieved successfully")
                 {
@@ -215,7 +217,7 @@ namespace ServiceApi.Infrastructure.Repositories
 
         public async Task<ServiceCombo> FindByIdAsync(Guid id, bool noTracking = false, bool includeNavigation = false)
         {
-            var query = context.ServiceCombos.AsQueryable();
+            var query = context.ServiceCombos.Where(x => x.ServiceComboId == id);
 
             if (noTracking)
             {
@@ -224,10 +226,10 @@ namespace ServiceApi.Infrastructure.Repositories
 
             if (includeNavigation)
             {
-                query.Include(x => x.ServiceComboMappings).Include(x => x.ServiceComboVariants);
+                query = query.Include(x => x.ServiceComboMappings).Include(x => x.ServiceComboVariants);
             }
 
-            return await query.FirstOrDefaultAsync(x => x.ServiceComboId == id) ?? null!;
+            return await query.FirstOrDefaultAsync() ?? null!;
         }
     }
 }
