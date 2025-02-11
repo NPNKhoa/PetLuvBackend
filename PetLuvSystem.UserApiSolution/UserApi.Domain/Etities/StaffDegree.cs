@@ -8,6 +8,7 @@
         public DateTime ExpiryDate { get; set; }
         public string? DegreeDesc { get; set; }
         public string DegreeImage { get; set; }
+        public bool IsVisible { get; set; }
 
         public Guid StaffId { get; set; }
         public virtual User Staff { get; set; }

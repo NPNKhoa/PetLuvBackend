@@ -12,8 +12,8 @@ using UserApi.Infrastructure.Data;
 namespace UserApi.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(UserDbContext))]
-    [Migration("20250206051505_init")]
-    partial class init
+    [Migration("20250211030827_second")]
+    partial class second
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -44,6 +44,9 @@ namespace UserApi.Infrastructure.Data.Migrations
 
                     b.Property<DateTime>("ExpiryDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("bit");
 
                     b.Property<DateTime>("SignedDate")
                         .HasColumnType("datetime2");
@@ -120,7 +123,8 @@ namespace UserApi.Infrastructure.Data.Migrations
 
                     b.HasKey("WorkScheduleId");
 
-                    b.HasIndex("StaffId");
+                    b.HasIndex("StaffId")
+                        .IsUnique();
 
                     b.ToTable("WorkSchedules");
                 });
@@ -161,9 +165,9 @@ namespace UserApi.Infrastructure.Data.Migrations
             modelBuilder.Entity("UserApi.Domain.Etities.WorkSchedule", b =>
                 {
                     b.HasOne("UserApi.Domain.Etities.User", "Staff")
-                        .WithMany("WorkSchedules")
-                        .HasForeignKey("StaffId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .WithOne("WorkSchedule")
+                        .HasForeignKey("UserApi.Domain.Etities.WorkSchedule", "StaffId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Staff");
@@ -171,18 +175,20 @@ namespace UserApi.Infrastructure.Data.Migrations
 
             modelBuilder.Entity("UserApi.Domain.Etities.WorkScheduleDetail", b =>
                 {
-                    b.HasOne("UserApi.Domain.Etities.WorkSchedule", null)
+                    b.HasOne("UserApi.Domain.Etities.WorkSchedule", "WorkSchedule")
                         .WithMany("WorkScheduleDetails")
                         .HasForeignKey("WorkScheduleId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("WorkSchedule");
                 });
 
             modelBuilder.Entity("UserApi.Domain.Etities.User", b =>
                 {
                     b.Navigation("StaffDegrees");
 
-                    b.Navigation("WorkSchedules");
+                    b.Navigation("WorkSchedule");
                 });
 
             modelBuilder.Entity("UserApi.Domain.Etities.WorkSchedule", b =>

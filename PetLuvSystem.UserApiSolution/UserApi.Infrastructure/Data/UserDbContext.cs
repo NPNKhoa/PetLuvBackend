@@ -40,19 +40,19 @@ namespace UserApi.Infrastructure.Data
 
             modelBuilder.Entity<WorkSchedule>()
                 .HasOne(ws => ws.Staff)
-                .WithMany(u => u.WorkSchedules)
-                .HasForeignKey(ws => ws.StaffId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<WorkScheduleDetail>()
-                .HasKey(wsd => new { wsd.WorkScheduleId, wsd.WorkingDate });
+                .WithOne(u => u.WorkSchedule)
+                .HasForeignKey<WorkSchedule>(ws => ws.StaffId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Work Schedule Detail
             modelBuilder.Entity<WorkScheduleDetail>()
-                .HasOne<WorkSchedule>()
+                .HasKey(wsd => new { wsd.WorkScheduleId, wsd.WorkingDate });
+
+            modelBuilder.Entity<WorkScheduleDetail>()
+                .HasOne(wsd => wsd.WorkSchedule)
                 .WithMany(ws => ws.WorkScheduleDetails)
                 .HasForeignKey(wsd => wsd.WorkScheduleId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
         }
 
     }

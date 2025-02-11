@@ -9,7 +9,7 @@ namespace UserApi.Presentation.Controllers
 {
     [Route("api/users")]
     [ApiController]
-    public class UserController(IUser _user) : ControllerBase
+    public class UserController(IUser _user, IStaffDegree _staffDegree, IWorkSchedule _schedule) : ControllerBase
     {
         [HttpGet]
         public async Task<IActionResult> GetAllUsers([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
@@ -22,6 +22,20 @@ namespace UserApi.Presentation.Controllers
         public async Task<IActionResult> GetUserById(Guid id)
         {
             var response = await _user.GetByIdAsync(id);
+            return response.ToActionResult(this);
+        }
+
+        [HttpGet("/api/staff/{id}/degree")]
+        public async Task<IActionResult> GetDegreeByStaff(Guid id)
+        {
+            var response = await _staffDegree.GetByAsync(x => x.StaffId == id);
+            return response.ToActionResult(this);
+        }
+
+        [HttpGet("/api/staff/{id}/schedule")]
+        public async Task<IActionResult> GetScheduleByStaff(Guid id)
+        {
+            var response = await _schedule.GetByAsync(x => x.StaffId == id);
             return response.ToActionResult(this);
         }
 

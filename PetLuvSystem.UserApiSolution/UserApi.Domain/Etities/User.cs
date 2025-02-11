@@ -15,7 +15,7 @@
         public string? StaffType { get; set; }
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
-        public virtual ICollection<WorkSchedule>? WorkSchedules { get; set; }
+        public WorkSchedule? WorkSchedule { get; set; }
         public virtual ICollection<StaffDegree>? StaffDegrees { get; set; }
 
     }

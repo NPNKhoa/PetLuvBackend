@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace UserApi.Infrastructure.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class init : Migration
+    public partial class second : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -43,6 +43,7 @@ namespace UserApi.Infrastructure.Data.Migrations
                     ExpiryDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     DegreeDesc = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     DegreeImage = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsVisible = table.Column<bool>(type: "bit", nullable: false),
                     StaffId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
@@ -71,7 +72,7 @@ namespace UserApi.Infrastructure.Data.Migrations
                         column: x => x.StaffId,
                         principalTable: "Users",
                         principalColumn: "UserId",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -92,7 +93,7 @@ namespace UserApi.Infrastructure.Data.Migrations
                         column: x => x.WorkScheduleId,
                         principalTable: "WorkSchedules",
                         principalColumn: "WorkScheduleId",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
@@ -109,7 +110,8 @@ namespace UserApi.Infrastructure.Data.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_WorkSchedules_StaffId",
                 table: "WorkSchedules",
-                column: "StaffId");
+                column: "StaffId",
+                unique: true);
         }
 
         /// <inheritdoc />

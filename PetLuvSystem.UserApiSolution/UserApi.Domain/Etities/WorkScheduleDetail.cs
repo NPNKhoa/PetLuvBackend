@@ -7,5 +7,7 @@
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
         public string? Note { get; set; }
+
+        public virtual WorkSchedule WorkSchedule { get; set; }
     }
 }

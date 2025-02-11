@@ -62,7 +62,7 @@ namespace UserApi.Infrastructure.Repository
             {
                 var user = await _context.Users
                     .Where(predicate)
-                    .Include(u => u.WorkSchedules)
+                    .Include(u => u.WorkSchedule)
                     .Include(u => u.StaffDegrees)
                     .FirstOrDefaultAsync();
 
@@ -308,7 +308,7 @@ namespace UserApi.Infrastructure.Repository
 
             if (includeDetail)
             {
-                query = query.Include(u => u.WorkSchedules)
+                query = query.Include(u => u.WorkSchedule)
                              .Include(u => u.StaffDegrees);
             }
 
