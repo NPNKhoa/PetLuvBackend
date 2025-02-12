@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using PetLuvSystem.SharedLibrary.Helpers.CloudinaryHelper;
+using PetLuvSystem.SharedLibrary.Logs;
 using PetLuvSystem.SharedLibrary.Responses;
 using UserApi.Application.DTOs.AuthDTOs;
 using UserApi.Application.DTOs.Conversions;
@@ -52,7 +54,15 @@ namespace UserApi.Presentation.Controllers
             string avatarPath = string.Empty;
             if (registerDTO.Avatar is not null)
             {
-                avatarPath = await HandleUploadImage(registerDTO.Avatar);
+                try
+                {
+                    avatarPath = await CloudinaryHelper.UploadImageToCloudinary(registerDTO.Avatar, "UserAvts");
+                }
+                catch (Exception ex)
+                {
+                    LogException.LogExceptions(ex);
+                    return (new Response(false, 400, "Lỗi trong quá trình upload ảnh lên cloud")).ToActionResult(this);
+                }
             }
 
             var response = await _user.Register(registerDTO, avatarPath);
@@ -100,7 +110,15 @@ namespace UserApi.Presentation.Controllers
             string avatarPath = string.Empty;
             if (dto.Avatar is not null)
             {
-                avatarPath = await HandleUploadImage(dto.Avatar);
+                try
+                {
+                    avatarPath = await CloudinaryHelper.UploadImageToCloudinary(dto.Avatar, "UserAvts");
+                }
+                catch (Exception ex)
+                {
+                    LogException.LogExceptions(ex);
+                    return (new Response(false, 500, "Error while uploading image")).ToActionResult(this);
+                }
             }
 
             var user = UserConversion.ToEntity(dto, avatarPath);

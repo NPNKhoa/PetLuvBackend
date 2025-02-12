@@ -193,6 +193,7 @@ namespace UserApi.Infrastructure.Repository
                     || existingUser.DateOfBirth != entity.DateOfBirth
                     || existingUser.PhoneNumber != entity.PhoneNumber
                     || existingUser.Address != entity.Address
+                    || !entity.Avatar.IsNullOrEmpty()
                     || existingUser.Avatar != entity.Avatar
                     || existingUser.IsActive != entity.IsActive
                     || existingUser.StaffType != entity.StaffType;
@@ -207,7 +208,7 @@ namespace UserApi.Infrastructure.Repository
                 existingUser.DateOfBirth = entity.DateOfBirth;
                 existingUser.PhoneNumber = entity.PhoneNumber;
                 existingUser.Address = entity.Address;
-                existingUser.Avatar = entity.Avatar;
+                existingUser.Avatar = entity.Avatar.IsNullOrEmpty() ? existingUser.Avatar : entity.Avatar;
                 existingUser.IsActive = entity.IsActive;
                 existingUser.StaffType = entity.StaffType;
                 existingUser.IsActive = entity.IsActive;

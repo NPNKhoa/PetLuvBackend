@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using PetLuvSystem.SharedLibrary.DependencyInjections;
+using PetLuvSystem.SharedLibrary.Helpers.CloudinaryHelper;
 using UserApi.Application.Interfaces;
 using UserApi.Infrastructure.Data;
 using UserApi.Infrastructure.Repository;
@@ -13,6 +14,8 @@ namespace UserApi.Infrastructure.DependencyInjection
         public static IServiceCollection AddInfrastructureService(this IServiceCollection services, IConfiguration config)
         {
             SharedServiceContainer.AddSharedServices<UserDbContext>(services, config);
+
+            CloudinaryHelper.ConfigureCloudinary(config);
 
             services.AddScoped<IUser, UserRepository>();
             services.AddScoped<IStaffDegree, StaffDegreeRepository>();
