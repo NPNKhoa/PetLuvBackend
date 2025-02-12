@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using PetLuvSystem.SharedLibrary.Helpers.CloudinaryHelper;
 using PetLuvSystem.SharedLibrary.Logs;
 using PetLuvSystem.SharedLibrary.Responses;
+using System.Security.Claims;
 using UserApi.Application.DTOs.AuthDTOs;
 using UserApi.Application.DTOs.Conversions;
 using UserApi.Application.DTOs.UserDTOs;
@@ -84,6 +86,7 @@ namespace UserApi.Presentation.Controllers
         }
 
         [HttpPost("/api/change-password")]
+        [Authorize]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDTO changePasswordDTO)
         {
             if (!ModelState.IsValid)
@@ -93,7 +96,14 @@ namespace UserApi.Presentation.Controllers
                 return BadRequest(new Response(false, 400, errorMessages));
             }
 
-            var response = await _user.ChangePassword(changePasswordDTO);
+            var emailFromToken = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Email)?.Value;
+
+            if (emailFromToken is null)
+            {
+                return (new Response(false, 401, "Token không hợp lệ")).ToActionResult(this);
+            }
+
+            var response = await _user.ChangePassword(changePasswordDTO with { Email = emailFromToken });
             return response.ToActionResult(this);
         }
 

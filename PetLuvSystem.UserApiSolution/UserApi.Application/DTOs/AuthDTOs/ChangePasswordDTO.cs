@@ -4,8 +4,7 @@ namespace UserApi.Application.DTOs.AuthDTOs
 {
     public record ChangePasswordDTO
     (
-        [Required]
-        string Email,
+        string? Email,
         [Required, MinLength(8)]
         string OldPassword,
         [Required, MinLength(8)]
