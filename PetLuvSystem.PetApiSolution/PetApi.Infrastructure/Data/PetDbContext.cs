@@ -19,9 +19,15 @@ namespace PetApi.Infrastructure.Data
             modelBuilder.Entity<Pet>().HasKey(p => p.PetId);
 
             modelBuilder.Entity<Pet>()
-                .HasOne(p => p.ParentPet)
-                .WithMany(p => p.ChildrenPets)
-                .HasForeignKey(p => p.ParentPetId)
+                .HasOne(p => p.Mother)
+                .WithMany(p => p.ChildrenFromMother)
+                .HasForeignKey(p => p.MotherId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Pet>()
+                .HasOne(p => p.Father)
+                .WithMany(p => p.ChildrenFromFather)
+                .HasForeignKey(p => p.FatherId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Pet>()
@@ -36,11 +42,9 @@ namespace PetApi.Infrastructure.Data
                 .HasForeignKey("PetId")
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<Pet>()
-                .HasMany(p => p.PetHealthBooks)
-                .WithOne()
-                .HasForeignKey("PetId")
-                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<Pet>().HasOne(p => p.PetHealthBook)
+                .WithOne(phb => phb.Pet)
+                .HasForeignKey<PetHealthBook>(phb => phb.PetHealthBookId);
 
             // PetBreed
             modelBuilder.Entity<PetBreed>().HasKey(p => p.BreedId);
@@ -51,7 +55,8 @@ namespace PetApi.Infrastructure.Data
                 .OnDelete(DeleteBehavior.Cascade);
 
             // PetHealthBook
-            modelBuilder.Entity<PetHealthBook>().HasKey(h => h.HealthBookId);
+            modelBuilder.Entity<PetHealthBook>().HasKey(h => h.PetHealthBookId);
+
             modelBuilder.Entity<PetHealthBook>()
                 .HasMany(h => h.PetHealthBookDetails)
                 .WithOne(d => d.PetHealthBook)

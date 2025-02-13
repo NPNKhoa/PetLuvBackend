@@ -1,8 +1,10 @@
-﻿using PetApi.Domain.Entities;
+﻿using PetApi.Application.DTOs.PetBreedDTOs;
+using PetApi.Application.DTOs.PetDTOs;
+using PetApi.Domain.Entities;
 
-namespace PetApi.Application.DTOs.PetDTOs
+namespace PetApi.Application.DTOs.SellingPetDTOs
 {
-    public record PetDTO
+    public record SellingPetDTO
     (
         Guid PetId,
         string PetName,
@@ -18,12 +20,13 @@ namespace PetApi.Application.DTOs.PetDTOs
         Guid? FatherId,
         BriefPetDTO? Mother,
         BriefPetDTO? Father,
-        Guid BreedId,
-        string BreedName,
-        Guid? CustomerId,
 
-        ICollection<PetImage> PetImagePaths,
+        Guid BreedId,
+        BriefPetBreedDTO PetBreed,
+
+        ICollection<string> ImagePaths,
         ICollection<BriefPetDTO> ChildrenFromMother,
-        ICollection<BriefPetDTO> ChildrenFromFather
+        ICollection<BriefPetDTO> ChildrenFromFather,
+        PetHealthBook PetHealthBook
     );
 }

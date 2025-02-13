@@ -8,7 +8,7 @@ using PetLuvSystem.SharedLibrary.Responses;
 
 namespace PetApi.Presentation.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/pets")]
     [ApiController]
     public class PetController(IPet _pet, IPetBreed _petBreed) : ControllerBase
     {

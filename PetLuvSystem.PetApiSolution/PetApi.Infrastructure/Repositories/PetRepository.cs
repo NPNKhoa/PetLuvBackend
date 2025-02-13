@@ -13,30 +13,51 @@ namespace PetApi.Infrastructure.Repositories
     {
         public async Task<Response> CreateAsync(Pet entity)
         {
-            try
-            {
-                var existingPet = await GetByAsync(x => x.PetName == entity.PetName && x.CustomerId == entity.CustomerId);
+            var strategy = _context.Database.CreateExecutionStrategy();
 
-                if (existingPet.Data is not null)
+            return await strategy.ExecuteAsync(async () =>
+            {
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                try
                 {
-                    return new Response(false, 409, "Pet already exists");
+                    var existingPet = await GetByAsync(x => x.PetName == entity.PetName && x.CustomerId == entity.CustomerId);
+
+                    if (existingPet.Data is not null)
+                    {
+                        return new Response(false, 409, "Pet already exists");
+                    }
+
+                    await _context.Pets.AddAsync(entity);
+                    await _context.SaveChangesAsync();
+
+                    var generatedPetId = entity.PetId;
+
+                    var healthBook = new PetHealthBook
+                    {
+                        PetHealthBookId = generatedPetId,
+                        Pet = entity,
+                        PetHealthBookDetails = new List<PetHealthBookDetail>()
+                    };
+
+                    await _context.PetHealthBooks.AddAsync(healthBook);
+                    await _context.SaveChangesAsync();
+
+                    await transaction.CommitAsync();
+
+                    var (responseData, _) = PetConversion.FromEntity(entity, null);
+
+                    return new Response(true, 201, "Pet created successfully!")
+                    {
+                        Data = responseData
+                    };
                 }
-
-                await _context.Pets.AddAsync(entity);
-                await _context.SaveChangesAsync();
-
-                var (responseData, _) = PetConversion.FromEntity(entity, null);
-
-                return new Response(true, 201, "Pet created successfully!")
+                catch (Exception ex)
                 {
-                    Data = responseData
-                };
-            }
-            catch (Exception ex)
-            {
-                LogException.LogExceptions(ex);
-                return new Response(false, 500, "Internal Server Error");
-            }
+                    await transaction.RollbackAsync();
+                    LogException.LogExceptions(ex);
+                    return new Response(false, 500, "Internal Server Error");
+                }
+            });
         }
 
         public async Task<Response> DeleteAsync(Guid id)
@@ -83,9 +104,6 @@ namespace PetApi.Infrastructure.Repositories
                     .Take(pageSize)
                     .Include(p => p.PetBreed)
                     .Include(p => p.PetImagePaths)
-                    .Include(p => p.ParentPet)
-                    .Include(p => p.ChildrenPets)
-                    .Include(p => p.PetHealthBooks)
                     .ToListAsync();
 
                 if (pets is null || pets.Count == 0)
@@ -186,7 +204,8 @@ namespace PetApi.Infrastructure.Repositories
                     entity.PetDesc != existingPet.PetDesc ||
                     entity.PetFamilyRole != existingPet.PetFamilyRole ||
                     entity.IsVisible != existingPet.IsVisible ||
-                    entity.ParentPetId != existingPet.ParentPetId ||
+                    entity.MotherId != existingPet.MotherId ||
+                    entity.FatherId != existingPet.FatherId ||
                     entity.BreedId != existingPet.BreedId ||
                     entity.CustomerId != existingPet.CustomerId;
 
@@ -203,7 +222,8 @@ namespace PetApi.Infrastructure.Repositories
                 existingPet.PetDesc = entity.PetDesc;
                 existingPet.PetFamilyRole = entity.PetFamilyRole;
                 existingPet.IsVisible = entity.IsVisible;
-                existingPet.ParentPetId = entity.ParentPetId;
+                existingPet.MotherId = entity.MotherId;
+                existingPet.FatherId = entity.FatherId;
                 existingPet.BreedId = entity.BreedId;
                 existingPet.CustomerId = entity.CustomerId;
 
@@ -235,11 +255,13 @@ namespace PetApi.Infrastructure.Repositories
             if (includeOthers)
             {
                 query = query
-                    .Include(x => x.ParentPet)
-                    .Include(x => x.PetBreed)
-                    .Include(x => x.PetImagePaths)
-                    .Include(x => x.ChildrenPets)
-                    .Include(x => x.PetHealthBooks);
+                    .Include(p => p.PetBreed)
+                    .Include(p => p.PetImagePaths)
+                    .Include(p => p.Mother)
+                    .Include(p => p.Father)
+                    .Include(p => p.ChildrenFromMother)
+                    .Include(p => p.ChildrenFromFather)
+                    .Include(p => p.PetHealthBook);
             }
 
             return await query.FirstOrDefaultAsync() ?? null!;

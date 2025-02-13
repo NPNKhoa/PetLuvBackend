@@ -1,9 +1,14 @@
-﻿namespace PetApi.Domain.Entities
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace PetApi.Domain.Entities
 {
     public class PetHealthBook
     {
-        public Guid HealthBookId { get; set; }
-        public bool IsVisible { get; set; }
+        [Key, ForeignKey("Pet")]
+        public Guid PetHealthBookId { get; set; }
+        public Pet Pet { get; set; }
+        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
         public virtual ICollection<PetHealthBookDetail> PetHealthBookDetails { get; set; }
     }

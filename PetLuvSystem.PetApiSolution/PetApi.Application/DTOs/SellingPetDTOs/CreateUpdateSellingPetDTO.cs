@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace PetApi.Application.DTOs.PetDTOs
+namespace PetApi.Application.DTOs.SellingPetDTOs
 {
-    public record CreateUpdatePetDTO
+    public record CreateUpdateSellingPetDTO
     (
         [Required]
         string PetName,
@@ -21,7 +21,6 @@ namespace PetApi.Application.DTOs.PetDTOs
         Guid? MotherId,
         Guid? FatherId,
         [Required]
-        Guid BreedId,
-        Guid? CustomerId
+        Guid BreedId
     );
 }
