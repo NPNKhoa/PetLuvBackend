@@ -5,6 +5,7 @@ using PetApi.Application.Interfaces;
 using PetApi.Infrastructure.Data;
 using PetApi.Infrastructure.Repositories;
 using PetLuvSystem.SharedLibrary.DependencyInjections;
+using PetLuvSystem.SharedLibrary.Helpers.CloudinaryHelper;
 
 namespace PetApi.Infrastructure.DependencyInjection
 {
@@ -13,6 +14,8 @@ namespace PetApi.Infrastructure.DependencyInjection
         public static IServiceCollection AddInfrastructureService(this IServiceCollection services, IConfiguration config)
         {
             SharedServiceContainer.AddSharedServices<PetDbContext>(services, config);
+
+            CloudinaryHelper.ConfigureCloudinary(config);
 
             services.AddScoped<IPetType, PetTypeRepository>();
             services.AddScoped<IPetBreed, PetBreedRepository>();

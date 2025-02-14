@@ -11,14 +11,107 @@ namespace PetApi.Infrastructure.Repositories
 {
     public class SellingPetRepository(PetDbContext _context) : ISellingPet
     {
-        public Task<Response> CreateAsync(SellingPet entity)
+        public async Task<Response> CreateAsync(SellingPet entity)
         {
-            throw new NotImplementedException();
+            try
+            {
+                if (entity.PetDateOfBirth > DateTime.Now)
+                {
+                    return new Response(false, 400, "Ngày sinh không hợp lệ");
+                }
+
+                var exisitingBreed = await _context.PetBreeds.FirstOrDefaultAsync(x => x.BreedId == entity.BreedId);
+
+                if (exisitingBreed is null)
+                {
+                    return new Response(false, 404, "Không tìm thấy giống thú cưng");
+                }
+
+                if (entity.MotherId is not null && entity.MotherId != Guid.Empty)
+                {
+                    var existingMother = await _context.SellingPets.FirstOrDefaultAsync(x => x.PetId == entity.MotherId);
+
+                    if (existingMother is null)
+                    {
+                        return new Response(false, 404, "Không tìm thấy mẹ của thú cưng");
+                    }
+                }
+
+                if (entity.FatherId is not null && entity.FatherId != Guid.Empty)
+                {
+                    var existingFather = await _context.SellingPets.FirstOrDefaultAsync(x => x.PetId == entity.FatherId);
+
+                    if (existingFather is null)
+                    {
+                        return new Response(false, 404, "Không tìm thấy mẹ của thú cưng");
+                    }
+                }
+
+                var existingPet = await GetByAsync(x => x.PetName == entity.PetName && x.BreedId == entity.BreedId);
+
+                if (existingPet.Data is not null)
+                {
+                    return new Response(false, 409, "Thú cưng đã tồn tại");
+                }
+
+                await _context.SellingPets.AddAsync(entity);
+                await _context.SaveChangesAsync();
+
+                entity.PetBreed = exisitingBreed;
+
+                var (responseData, _) = SellingPetConversion.FromEntity(entity, null);
+
+                return new Response(false, 201, "Tạo thú cưng thành công")
+                {
+                    Data = responseData
+                };
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
+                return new Response(false, 500, "Internal Server Error");
+            }
         }
 
-        public Task<Response> DeleteAsync(Guid id)
+        public async Task<Response> DeleteAsync(Guid id)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var existingPet = await FindById(id, false, true);
+
+                if (existingPet is null)
+                {
+                    return new Response(false, 404, "Không tìm thấy thú cưng cần xóa");
+                }
+
+                if (existingPet.IsVisible)
+                {
+                    existingPet.IsVisible = false;
+                    await _context.SaveChangesAsync();
+
+                    return new Response(true, 200, "Ẩn thú cưng thành công");
+                }
+
+                if (existingPet.ChildrenFromFather is null
+                    || existingPet.ChildrenFromMother is null
+                    || existingPet.ChildrenFromFather.Count > 0
+                    || existingPet.ChildrenFromMother.Count > 0)
+                {
+                    return new Response(false, 400, "Không thể xóa thú cưng này vì thú cưng này là cha hoặc mẹ của một số thú cưng khác");
+                }
+
+                // TODO: Check pet in order
+
+                _context.SellingPets.Remove(existingPet);
+                await _context.SaveChangesAsync();
+
+                return new Response(true, 200, "Xóa thú cưng thành công");
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
+                return new Response(false, 500, "Internal Server Error");
+            }
         }
 
         public async Task<Response> GetAllAsync(int pageIndex = 1, int pageSize = 10)

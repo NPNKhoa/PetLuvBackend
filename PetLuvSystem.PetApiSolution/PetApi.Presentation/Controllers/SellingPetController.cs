@@ -1,50 +1,33 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PetApi.Application.DTOs.Conversions;
-using PetApi.Application.DTOs.PetDTOs;
+using PetApi.Application.DTOs.SellingPetDTOs;
 using PetApi.Application.Interfaces;
 using PetApi.Domain.Entities;
-using PetLuvSystem.SharedLibrary.Helpers.CloudinaryHelper;
 using PetLuvSystem.SharedLibrary.Logs;
 using PetLuvSystem.SharedLibrary.Responses;
 
 namespace PetApi.Presentation.Controllers
 {
-    [Route("api/pets")]
+    [Route("api/selling-pets")]
     [ApiController]
-    public class PetController(IPet _pet, IPetBreed _petBreed) : ControllerBase
+    public class SellingPetController(ISellingPet _sellingPet) : ControllerBase
     {
         [HttpGet]
-        public async Task<IActionResult> GetAllPets([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetAllSellingPets([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
         {
-            try
-            {
-                var response = await _pet.GetAllAsync(pageIndex, pageSize);
-                return response.ToActionResult(this);
-            }
-            catch (Exception ex)
-            {
-                LogException.LogExceptions(ex);
-                return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error");
-            }
+            var response = await _sellingPet.GetAllAsync(pageIndex, pageSize);
+            return response.ToActionResult(this);
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetPetById(Guid id)
+        public async Task<IActionResult> GetSellingPetById(Guid id)
         {
-            try
-            {
-                var response = await _pet.GetByIdAsync(id);
-                return response.ToActionResult(this);
-            }
-            catch (Exception ex)
-            {
-                LogException.LogExceptions(ex);
-                return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error");
-            }
+            var response = await _sellingPet.GetByIdAsync(id);
+            return response.ToActionResult(this);
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreatePet([FromForm] CreateUpdatePetDTO dto, [FromForm] IFormFileCollection imageFiles)
+        public async Task<IActionResult> CreateSellingPet([FromForm] CreateUpdateSellingPetDTO dto, [FromForm] IFormFileCollection imageFiles)
         {
             if (!ModelState.IsValid)
             {
@@ -57,21 +40,14 @@ namespace PetApi.Presentation.Controllers
 
             try
             {
-                var existingBreed = await _petBreed.FindById(dto.BreedId, true, false);
-
-                if (existingBreed is null)
-                {
-                    return BadRequest(new Response(false, 400, "Can not find any pet breed with this id"));
-                }
-
-                var entity = PetConversion.ToEntity(dto);
+                var entity = SellingPetConversion.ToEntity(dto);
 
                 if (imageFiles is not null)
                 {
                     entity.PetImagePaths = new List<PetImage>();
                     foreach (var imageFile in imageFiles)
                     {
-                        var imagePath = await CloudinaryHelper.UploadImageToCloudinary(imageFile, "UserPet");
+                        var imagePath = await HandleUploadImage(imageFile);
                         entity.PetImagePaths.Add(new PetImage
                         {
                             PetImagePath = imagePath,
@@ -80,7 +56,7 @@ namespace PetApi.Presentation.Controllers
                     }
                 }
 
-                var response = await _pet.CreateAsync(entity);
+                var response = await _sellingPet.CreateAsync(entity);
                 return response.ToActionResult(this);
             }
             catch (Exception ex)
@@ -91,7 +67,7 @@ namespace PetApi.Presentation.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdatePet(Guid id, [FromForm] CreateUpdatePetDTO dto, [FromForm] IFormFileCollection imageFiles)
+        public async Task<IActionResult> UpdateSellingPet(Guid id, [FromForm] CreateUpdateSellingPetDTO dto, [FromForm] IFormFileCollection imageFiles)
         {
             if (!ModelState.IsValid)
             {
@@ -104,14 +80,14 @@ namespace PetApi.Presentation.Controllers
 
             try
             {
-                var existingPet = await _pet.FindById(id);
+                var existingSellingPet = await _sellingPet.FindById(id);
 
-                if (existingPet is null)
+                if (existingSellingPet is null)
                 {
-                    return BadRequest(new Response(false, 400, "Can not find any pet with this id"));
+                    return BadRequest(new Response(false, 400, "Can not find any selling pet with this id"));
                 }
 
-                var entity = PetConversion.ToEntity(dto);
+                var entity = SellingPetConversion.ToEntity(dto);
                 entity.PetId = id;
 
                 if (imageFiles is not null)
@@ -119,7 +95,7 @@ namespace PetApi.Presentation.Controllers
                     entity.PetImagePaths = new List<PetImage>();
                     foreach (var imageFile in imageFiles)
                     {
-                        var imagePath = await CloudinaryHelper.UploadImageToCloudinary(imageFile, "UserPet");
+                        var imagePath = await HandleUploadImage(imageFile);
                         entity.PetImagePaths.Add(new PetImage
                         {
                             PetImagePath = imagePath,
@@ -128,7 +104,7 @@ namespace PetApi.Presentation.Controllers
                     }
                 }
 
-                var response = await _pet.UpdateAsync(id, entity);
+                var response = await _sellingPet.UpdateAsync(id, entity);
                 return response.ToActionResult(this);
             }
             catch (Exception ex)
@@ -139,18 +115,10 @@ namespace PetApi.Presentation.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeletePet(Guid id)
+        public async Task<IActionResult> DeleteSellingPet(Guid id)
         {
-            try
-            {
-                var response = await _pet.DeleteAsync(id);
-                return response.ToActionResult(this);
-            }
-            catch (Exception ex)
-            {
-                LogException.LogExceptions(ex);
-                return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error");
-            }
+            var response = await _sellingPet.DeleteAsync(id);
+            return response.ToActionResult(this);
         }
 
         private static async Task<string> HandleUploadImage(IFormFile imageFile)

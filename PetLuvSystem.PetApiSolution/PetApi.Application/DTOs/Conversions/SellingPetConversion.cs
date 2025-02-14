@@ -1,4 +1,6 @@
-﻿using PetApi.Application.DTOs.SellingPetDTOs;
+﻿using PetApi.Application.DTOs.PetBreedDTOs;
+using PetApi.Application.DTOs.PetDTOs;
+using PetApi.Application.DTOs.SellingPetDTOs;
 using PetApi.Domain.Entities;
 
 namespace PetApi.Application.DTOs.Conversions
@@ -49,46 +51,48 @@ namespace PetApi.Application.DTOs.Conversions
                     entity.PetGender,
                     entity.PetFurColor,
                     entity.PetWeight,
-                    entity.PetDesc,
-                    entity.PetFamilyRole,
+                    entity.PetDesc ?? string.Empty,
+                    entity.PetFamilyRole ?? string.Empty,
                     entity.IsVisible,
-                    entity.MotherId,
-                    entity.FatherId,
-                    entity.Mother is not null ? new PetDTOs.BriefPetDTO
+                    entity.MotherId ?? null,
+                    entity.FatherId ?? null,
+                    entity.Mother is not null ? new BriefPetDTO
                     (
                         entity.Mother.PetId,
                         entity.Mother.PetName,
                         entity.Mother.IsVisible
                     ) : null,
-                    entity.Father is not null ? new PetDTOs.BriefPetDTO
+                    entity.Father is not null ? new BriefPetDTO
                     (
                         entity.Father.PetId,
                         entity.Father.PetName,
                         entity.Father.IsVisible
                     ) : null,
                     entity.BreedId,
-                    new PetBreedDTOs.BriefPetBreedDTO
+                    entity.PetBreed is not null ? new BriefPetBreedDTO
                     (
                         entity.PetBreed.BreedId,
                         entity.PetBreed.BreedName,
                         entity.PetBreed.BreedDesc,
                         entity.PetBreed.IllustrationImage,
                         entity.PetBreed.IsVisible,
-                        entity.PetBreed.PetType.PetTypeName
-                    ),
+                        entity.PetBreed?.PetType?.PetTypeName ?? string.Empty
+                    ) : null!,
                     entity.PetImagePaths is not null ? entity.PetImagePaths.Select(pi => pi.PetImagePath).ToList() : null!,
-                    entity.ChildrenFromMother is not null ? entity.ChildrenFromMother.Select(cp => new PetDTOs.BriefPetDTO
-                    (
-                        cp.PetId,
-                        cp.PetName,
-                        cp.IsVisible
-                    )).ToList() : null!,
-                    entity.ChildrenFromFather is not null ? entity.ChildrenFromFather.Select(cp => new PetDTOs.BriefPetDTO
-                    (
-                        cp.PetId,
-                        cp.PetName,
-                        cp.IsVisible
-                    )).ToList() : null!,
+                    entity.ChildrenFromMother is not null && entity.ChildrenFromMother.Count > 0
+                        ? entity.ChildrenFromMother.Select(cp => new BriefPetDTO
+                        (
+                            cp.PetId,
+                            cp.PetName,
+                            cp.IsVisible
+                        )).ToList() : null!,
+                    entity.ChildrenFromFather is not null && entity.ChildrenFromFather.Count > 0
+                        ? entity.ChildrenFromFather.Select(cp => new BriefPetDTO
+                        (
+                            cp.PetId,
+                            cp.PetName,
+                            cp.IsVisible
+                        )).ToList() : null!,
                     entity.PetHealthBook
                 );
 
@@ -105,49 +109,53 @@ namespace PetApi.Application.DTOs.Conversions
                         e.PetGender,
                         e.PetFurColor,
                         e.PetWeight,
-                        e.PetDesc,
-                        e.PetFamilyRole,
+                        e.PetDesc ?? string.Empty,
+                        e.PetFamilyRole ?? string.Empty,
                         e.IsVisible,
-                        e.MotherId,
-                        e.FatherId,
-                        e.Mother is not null ? new PetDTOs.BriefPetDTO
+                        e.MotherId ?? null,
+                        e.FatherId ?? null,
+                        e.Mother is not null ? new BriefPetDTO
                         (
                             e.Mother.PetId,
                             e.Mother.PetName,
                             e.Mother.IsVisible
                         ) : null,
-                        e.Father is not null ? new PetDTOs.BriefPetDTO
+                        e.Father is not null ? new BriefPetDTO
                         (
                             e.Father.PetId,
                             e.Father.PetName,
                             e.Father.IsVisible
                         ) : null,
                         e.BreedId,
-                        new PetBreedDTOs.BriefPetBreedDTO
+                        e.PetBreed is not null ? new BriefPetBreedDTO
                         (
                             e.PetBreed.BreedId,
                             e.PetBreed.BreedName,
                             e.PetBreed.BreedDesc,
                             e.PetBreed.IllustrationImage,
                             e.PetBreed.IsVisible,
-                            e.PetBreed.PetType.PetTypeName
-                        ),
+                            e.PetBreed?.PetType?.PetTypeName ?? string.Empty
+                        ) : null!,
                         e.PetImagePaths is not null ? e.PetImagePaths.Select(pi => pi.PetImagePath).ToList() : null!,
-                        e.ChildrenFromMother is not null ? e.ChildrenFromMother.Select(cp => new PetDTOs.BriefPetDTO
-                        (
-                            cp.PetId,
-                            cp.PetName,
-                            cp.IsVisible
-                        )).ToList() : null!,
-                        e.ChildrenFromFather is not null ? e.ChildrenFromFather.Select(cp => new PetDTOs.BriefPetDTO
-                        (
-                            cp.PetId,
-                            cp.PetName,
-                            cp.IsVisible
-                        )).ToList() : null!,
+                        e.ChildrenFromMother is not null && e.ChildrenFromMother.Count > 0
+                            ? e.ChildrenFromMother.Select(cp => new BriefPetDTO
+                            (
+                                cp.PetId,
+                                cp.PetName,
+                                cp.IsVisible
+                            )).ToList() : null!,
+                        e.ChildrenFromFather is not null && e.ChildrenFromFather.Count > 0
+                            ? e.ChildrenFromFather.Select(cp => new BriefPetDTO
+                            (
+                                cp.PetId,
+                                cp.PetName,
+                                cp.IsVisible
+                            )).ToList() : null!,
                         e.PetHealthBook
                     )
                 ).ToList();
+
+                return (null, multiDtos);
             }
 
             return (null, null);
