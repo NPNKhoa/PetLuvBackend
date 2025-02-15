@@ -68,6 +68,7 @@ namespace PetApi.Application.DTOs.Conversions
                     ) : null,
                     entity.BreedId,
                     entity.PetBreed is not null ? entity.PetBreed.BreedName : string.Empty,
+                    entity.PetBreed?.PetType is not null ? entity.PetBreed.PetType.PetTypeName : string.Empty,
                     entity.CustomerId,
                     entity.PetImagePaths!,
                     entity.ChildrenFromMother is not null ? entity.ChildrenFromMother.Select(cm => new BriefPetDTO(
@@ -112,6 +113,7 @@ namespace PetApi.Application.DTOs.Conversions
                     ) : null,
                     p.BreedId,
                     p.PetBreed is not null ? p.PetBreed.BreedName : string.Empty,
+                    p.PetBreed?.PetType is not null ? p.PetBreed.PetType.PetTypeName : string.Empty,
                     p.CustomerId,
                     p.PetImagePaths!,
                     p.ChildrenFromMother is not null ? p.ChildrenFromMother.Select(cm => new BriefPetDTO(

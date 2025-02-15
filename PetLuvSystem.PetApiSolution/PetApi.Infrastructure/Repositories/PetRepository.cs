@@ -160,6 +160,46 @@ namespace PetApi.Infrastructure.Repositories
             }
         }
 
+        public async Task<Response> GetByUserIdAsync(Guid id, int pageIndex = 1, int pageSize = 10)
+        {
+            try
+            {
+                var petCollection = await _context.Pets
+                    .Where(x => x.CustomerId == id)
+                    .Skip((pageIndex - 1) * pageSize)
+                    .Take(pageSize)
+                    .Include(p => p.PetImagePaths)
+                    .Include(p => p.PetBreed)
+                        .ThenInclude(b => b.PetType)
+                    .ToListAsync();
+
+                if (petCollection is null || petCollection.Count == 0)
+                {
+                    return new Response(false, 404, "Không tìm thấy thú cưng nào!");
+                }
+
+                var (_, response) = PetConversion.FromEntity(null, petCollection);
+
+                return new Response(true, 200, "Found")
+                {
+                    Data = new
+                    {
+                        data = response,
+                        meta = new
+                        {
+                            currentPage = pageIndex,
+                            totalPage = Math.Ceiling((double)petCollection.Count / pageSize)
+                        }
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
+                return new Response(false, 500, "Internal Server Error");
+            }
+        }
+
         public async Task<Response> GetByIdAsync(Guid id)
         {
             try

@@ -43,6 +43,21 @@ namespace PetApi.Presentation.Controllers
             }
         }
 
+        [HttpGet("/api/users/{id}/pets")]
+        public async Task<IActionResult> GetPetByUser([FromRoute] Guid id, [FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
+        {
+            try
+            {
+                var response = await _pet.GetByUserIdAsync(id, pageIndex, pageSize);
+                return response.ToActionResult(this);
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
+                return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error");
+            }
+        }
+
         [HttpPost]
         public async Task<IActionResult> CreatePet([FromForm] CreateUpdatePetDTO dto, [FromForm] IFormFileCollection imageFiles)
         {

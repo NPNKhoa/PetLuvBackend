@@ -20,6 +20,7 @@ namespace PetApi.Application.DTOs.PetDTOs
         BriefPetDTO? Father,
         Guid BreedId,
         string BreedName,
+        string petTypeName,
         Guid? CustomerId,
 
         ICollection<PetImage> PetImagePaths,
