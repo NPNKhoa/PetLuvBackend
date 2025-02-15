@@ -12,7 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="DTOs\PetHealthBookDetailDTOs\" />
     <Folder Include="DTOs\PetHealthBookDTOs\" />
   </ItemGroup>
 
