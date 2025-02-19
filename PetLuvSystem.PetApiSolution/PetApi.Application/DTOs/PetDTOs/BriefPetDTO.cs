@@ -4,6 +4,7 @@
     (
         Guid PetId,
         string PetName,
+        string? PetImagePath,
         bool IsVisible
     );
 }

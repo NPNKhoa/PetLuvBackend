@@ -60,12 +60,14 @@ namespace PetApi.Application.DTOs.Conversions
                     (
                         entity.Mother.PetId,
                         entity.Mother.PetName,
+                        entity.Mother.PetImagePaths?.First().PetImagePath,
                         entity.Mother.IsVisible
                     ) : null,
                     entity.Father is not null ? new BriefPetDTO
                     (
                         entity.Father.PetId,
                         entity.Father.PetName,
+                        entity.Father.PetImagePaths?.First().PetImagePath,
                         entity.Father.IsVisible
                     ) : null,
                     entity.BreedId,
@@ -84,6 +86,7 @@ namespace PetApi.Application.DTOs.Conversions
                         (
                             cp.PetId,
                             cp.PetName,
+                            string.Empty,
                             cp.IsVisible
                         )).ToList() : null!,
                     entity.ChildrenFromFather is not null && entity.ChildrenFromFather.Count > 0
@@ -91,6 +94,7 @@ namespace PetApi.Application.DTOs.Conversions
                         (
                             cp.PetId,
                             cp.PetName,
+                            string.Empty,
                             cp.IsVisible
                         )).ToList() : null!,
                     entity.PetHealthBook
@@ -118,12 +122,14 @@ namespace PetApi.Application.DTOs.Conversions
                         (
                             e.Mother.PetId,
                             e.Mother.PetName,
+                            string.Empty,
                             e.Mother.IsVisible
                         ) : null,
                         e.Father is not null ? new BriefPetDTO
                         (
                             e.Father.PetId,
                             e.Father.PetName,
+                            string.Empty,
                             e.Father.IsVisible
                         ) : null,
                         e.BreedId,
@@ -142,6 +148,7 @@ namespace PetApi.Application.DTOs.Conversions
                             (
                                 cp.PetId,
                                 cp.PetName,
+                                string.Empty,
                                 cp.IsVisible
                             )).ToList() : null!,
                         e.ChildrenFromFather is not null && e.ChildrenFromFather.Count > 0
@@ -149,6 +156,7 @@ namespace PetApi.Application.DTOs.Conversions
                             (
                                 cp.PetId,
                                 cp.PetName,
+                                string.Empty,
                                 cp.IsVisible
                             )).ToList() : null!,
                         e.PetHealthBook

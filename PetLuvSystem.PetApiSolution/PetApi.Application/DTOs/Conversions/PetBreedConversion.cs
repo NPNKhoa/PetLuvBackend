@@ -43,6 +43,7 @@ namespace PetApi.Application.DTOs.Conversions
                     (
                         x.PetId,
                         x.PetName,
+                        string.Empty,
                         x.IsVisible
                     ))!
                 );
@@ -65,6 +66,7 @@ namespace PetApi.Application.DTOs.Conversions
                     (
                         x.PetId,
                         x.PetName,
+                        string.Empty,
                         x.IsVisible
                     ))!
                 ));

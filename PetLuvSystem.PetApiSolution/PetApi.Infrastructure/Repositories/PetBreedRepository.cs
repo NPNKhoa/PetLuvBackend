@@ -147,6 +147,37 @@ namespace PetApi.Infrastructure.Repositories
             }
         }
 
+        public async Task<Response> GetByAsync(Expression<Func<PetBreed, bool>> predicate, bool isReturnList = false)
+        {
+            try
+            {
+                var query = _context.PetBreeds.Where(predicate);
+
+                if (query is null)
+                {
+                    return new Response(false, 404, "Không tìm thấy loài cần tìm");
+                }
+
+                if (isReturnList)
+                {
+                    return new Response(true, 200, "Successful")
+                    {
+                        Data = await query.ToListAsync()
+                    };
+                }
+
+                return new Response(true, 200, "Successful")
+                {
+                    Data = await query.FirstOrDefaultAsync()
+                };
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
+                return new Response(false, 500, "Internal Server Error");
+            }
+        }
+
         public async Task<Response> GetByIdAsync(Guid id)
         {
             try

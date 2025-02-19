@@ -41,6 +41,21 @@ namespace PetApi.Presentation.Controllers
             }
         }
 
+        [HttpGet("pet-types/{id}")]
+        public async Task<IActionResult> GetBreedsByPetType([FromRoute] Guid id)
+        {
+            try
+            {
+                var response = await _petBreed.GetByAsync(x => x.PetTypeId == id, true);
+                return response.ToActionResult(this);
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
+                return (new Response(false, 500, "Internal Server Error")).ToActionResult(this);
+            }
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetBreedById([FromRoute] Guid id)
         {
