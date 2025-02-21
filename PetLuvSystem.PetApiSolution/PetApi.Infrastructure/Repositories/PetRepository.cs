@@ -229,11 +229,48 @@ namespace PetApi.Infrastructure.Repositories
         {
             try
             {
+                if (entity.PetDateOfBirth > DateTime.UtcNow)
+                {
+                    return new Response(false, 400, "Ngày sinh không hợp lệ");
+                }
+
+                var existingBreed = await _context.PetBreeds.FindAsync(entity.BreedId);
+
+                if (existingBreed is null || existingBreed.IsVisible == false)
+                {
+                    return new Response(false, 404, "Giống này đã bị xóa hoặc không tồn tại");
+                }
+
+                var existingMother = await _context.Pets.FindAsync(entity.MotherId);
+
+                if (existingMother is null || existingMother.IsVisible == false)
+                {
+                    return new Response(false, 404, "Thú cưng này không tồn tại hoặc đã bị xóa");
+                }
+
+                var existingFather = await _context.Pets.FindAsync(entity.FatherId);
+
+                if (existingFather is null || existingFather.IsVisible == false)
+                {
+                    return new Response(false, 404, "Thú cưng này không tồn tại hoặc đã bị xóa");
+                }
+
                 var existingPet = await FindById(id);
 
                 if (existingPet is null)
                 {
                     return new Response(false, 404, "Pet not found");
+                }
+
+                if
+                (
+                    existingPet.ChildrenFromMother is not null
+                        && existingPet.ChildrenFromMother.Contains(existingMother) ||
+                    existingPet.ChildrenFromFather is not null
+                        && existingPet.ChildrenFromFather.Contains(existingFather)
+                )
+                {
+                    return new Response(false, 400, "Cha hoặc mẹ của thú cưng này không hợp lệ");
                 }
 
                 bool hasChanges = entity.PetName != existingPet.PetName ||

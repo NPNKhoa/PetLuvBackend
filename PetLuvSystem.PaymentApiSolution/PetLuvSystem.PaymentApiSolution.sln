@@ -1,0 +1,49 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35208.52
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PaymentApi.Application", "PaymentApi.Application\PaymentApi.Application.csproj", "{2329BA5B-93F2-48B4-9648-425E5F089121}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PaymentApi.Domain", "PaymentApi.Domain\PaymentApi.Domain.csproj", "{B0E828A6-88D2-4B8F-8428-B6B7DE8835E0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PaymentApi.Infrastructure", "PaymentApi.Infrastructure\PaymentApi.Infrastructure.csproj", "{9A18CD0B-4B4E-44BC-8E35-4C2C011B9D38}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PaymentApi.Presentation", "PaymentApi.Presentation\PaymentApi.Presentation.csproj", "{1526DE70-E58F-4C79-91A5-F97A34FDAADB}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PetLuvSystem.SharedLibrary", "..\PetLuvSystem.SharedLibrarySolution\PetLuvSystem.SharedLibrary\PetLuvSystem.SharedLibrary.csproj", "{95C94C4F-FB90-4513-BEDB-D6958D868006}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2329BA5B-93F2-48B4-9648-425E5F089121}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2329BA5B-93F2-48B4-9648-425E5F089121}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2329BA5B-93F2-48B4-9648-425E5F089121}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2329BA5B-93F2-48B4-9648-425E5F089121}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B0E828A6-88D2-4B8F-8428-B6B7DE8835E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B0E828A6-88D2-4B8F-8428-B6B7DE8835E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B0E828A6-88D2-4B8F-8428-B6B7DE8835E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B0E828A6-88D2-4B8F-8428-B6B7DE8835E0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9A18CD0B-4B4E-44BC-8E35-4C2C011B9D38}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A18CD0B-4B4E-44BC-8E35-4C2C011B9D38}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A18CD0B-4B4E-44BC-8E35-4C2C011B9D38}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A18CD0B-4B4E-44BC-8E35-4C2C011B9D38}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1526DE70-E58F-4C79-91A5-F97A34FDAADB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1526DE70-E58F-4C79-91A5-F97A34FDAADB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1526DE70-E58F-4C79-91A5-F97A34FDAADB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1526DE70-E58F-4C79-91A5-F97A34FDAADB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{95C94C4F-FB90-4513-BEDB-D6958D868006}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{95C94C4F-FB90-4513-BEDB-D6958D868006}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{95C94C4F-FB90-4513-BEDB-D6958D868006}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{95C94C4F-FB90-4513-BEDB-D6958D868006}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {233DEBF6-7937-45C8-AA33-CDC28B93A15F}
+	EndGlobalSection
+EndGlobal
