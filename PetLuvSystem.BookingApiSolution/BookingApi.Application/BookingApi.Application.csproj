@@ -7,11 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="DTOs\Conversions\" />
-    <Folder Include="Interfaces\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\PetLuvSystem.SharedLibrarySolution\PetLuvSystem.SharedLibrary\PetLuvSystem.SharedLibrary.csproj" />
     <ProjectReference Include="..\BookingApi.Domain\BookingApi.Domain.csproj" />
   </ItemGroup>

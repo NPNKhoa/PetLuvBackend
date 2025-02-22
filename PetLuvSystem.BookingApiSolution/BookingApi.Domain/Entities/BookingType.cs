@@ -5,6 +5,7 @@
         public Guid BookingTypeId { get; set; }
         public string BookingTypeName { get; set; }
         public string BookingTypeDesc { get; set; }
+        public bool IsVisible { get; set; }
 
         public virtual ICollection<Booking> Bookings { get; set; }
     }
