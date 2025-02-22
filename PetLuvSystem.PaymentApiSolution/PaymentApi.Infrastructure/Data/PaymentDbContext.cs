@@ -38,12 +38,14 @@ namespace PaymentApi.Infrastructure.Data
             modelBuilder.Entity<PaymentHistory>()
                 .HasOne(ph => ph.Payment)
                 .WithMany(p => p.PaymentHistories)
-                .HasForeignKey(ph => ph.PaymentId);
+                .HasForeignKey(ph => ph.PaymentId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<PaymentHistory>()
                 .HasOne(ph => ph.PaymentStatus)
                 .WithMany(ps => ps.PaymentHistories)
-                .HasForeignKey(ph => ph.PaymentStatusId);
+                .HasForeignKey(ph => ph.PaymentStatusId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
