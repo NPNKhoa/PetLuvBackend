@@ -2,7 +2,6 @@
 {
     public record CreateUpdateBookingDTO
     (
-        Guid BookingId,
         DateTime BookingStartTime,
         DateTime BookingEndTime,
         string? BookingNote,

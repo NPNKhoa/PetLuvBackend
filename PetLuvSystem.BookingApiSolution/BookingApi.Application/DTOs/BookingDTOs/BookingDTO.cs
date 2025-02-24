@@ -23,7 +23,7 @@ namespace BookingApi.Application.DTOs.BookingDTOs
         Guid CustomerId,
         Guid PetId,
         RoomBookingItemDTO RoomBookingItem,
-        ServiceBookingDetailDTO ServiceBookingDetail,
-        ServiceComboBookingDetailDTO ServiceComboBookingDetail
+        ICollection<ServiceBookingDetailDTO> ServiceBookingDetails,
+        ICollection<ServiceComboBookingDetailDTO> ServiceComboBookingDetails
     );
 }

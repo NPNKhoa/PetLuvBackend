@@ -9,7 +9,7 @@ namespace BookingApi.Presentation.Controllers
 {
     [Route("api/booking-types")]
     [ApiController]
-    public class BookingTypeControler(IBookingType _bookingType) : ControllerBase
+    public class BookingTypeController(IBookingType _bookingType) : ControllerBase
     {
         [HttpGet]
         public async Task<IActionResult> GetAllBookingTypes([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
