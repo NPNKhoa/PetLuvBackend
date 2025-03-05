@@ -152,9 +152,9 @@ namespace RoomApi.Infrastructure.Repositories
             {
                 var room = await FindById(id, true, true, true);
 
-                if (room is null)
+                if (room is null || room.IsVisible == false)
                 {
-                    return new Response(false, 404, "Room not found");
+                    return new Response(false, 404, "Phòng này đã bị xóa hoặc không tồn tại");
                 }
 
                 var (responseData, _) = RoomConversion.FromEntity(room, null);

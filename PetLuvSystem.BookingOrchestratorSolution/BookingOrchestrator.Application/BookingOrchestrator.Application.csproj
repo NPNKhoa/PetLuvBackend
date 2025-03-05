@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\PetLuvSystem.SharedLibrarySolution\PetLuvSystem.SharedLibrary\PetLuvSystem.SharedLibrary.csproj" />
+    <ProjectReference Include="..\BookingOrchestrator.Domain\BookingOrchestrator.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Consumers\" />
+    <Folder Include="Services\" />
+  </ItemGroup>
+
+</Project>

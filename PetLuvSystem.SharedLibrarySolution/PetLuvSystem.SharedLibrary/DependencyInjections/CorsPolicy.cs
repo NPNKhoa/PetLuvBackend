@@ -9,12 +9,12 @@ namespace PetLuvSystem.SharedLibrary.DependencyInjections
         {
             services.AddCors(options =>
             {
-                options.AddPolicy("AllowFrontend", builder =>
+                options.AddPolicy("AllowAll", builder =>
                 {
-                    builder.WithOrigins("http://localhost:3000", "http://localhost:5010", "http://localhost:5115")
-                           .AllowAnyHeader()
-                           .AllowAnyMethod();
-
+                    //builder.WithOrigins("http://localhost:3000", "http://localhost:5010", "http://localhost:5115")
+                    //       .AllowAnyHeader()
+                    //       .AllowAnyMethod();
+                    builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
                 });
             });
 
@@ -23,7 +23,7 @@ namespace PetLuvSystem.SharedLibrary.DependencyInjections
 
         public static IApplicationBuilder UseCorsPolicy(this IApplicationBuilder app)
         {
-            app.UseCors("AllowFrontend");
+            app.UseCors("AllowAll");
             return app;
         }
     }

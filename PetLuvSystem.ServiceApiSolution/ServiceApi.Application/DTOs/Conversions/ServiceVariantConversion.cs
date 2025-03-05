@@ -11,6 +11,7 @@ namespace ServiceApi.Application.DTOs.Conversions
             BreedId = dto.BreedId,
             PetWeightRange = dto.PetWeightRange,
             Price = dto.Price,
+            EstimateTime = dto.EstimateTime,
             IsVisible = dto.IsVisible
         };
 
@@ -20,6 +21,7 @@ namespace ServiceApi.Application.DTOs.Conversions
             BreedId = dto.BreedId,
             PetWeightRange = dto.PetWeightRange,
             Price = dto.Price,
+            EstimateTime = dto.EstimateTime,
             IsVisible = dto.IsVisible
         };
 
@@ -34,6 +36,7 @@ namespace ServiceApi.Application.DTOs.Conversions
                     string.Empty,
                     serviceVariant.PetWeightRange!,
                     serviceVariant.Price,
+                    serviceVariant.EstimateTime,
                     serviceVariant.IsVisible
                 );
                 return (singleServiceVariant, null);
@@ -48,6 +51,7 @@ namespace ServiceApi.Application.DTOs.Conversions
                     string.Empty,
                     p.PetWeightRange!,
                     p.Price,
+                    p.EstimateTime,
                     p.IsVisible
                 )).ToList();
 

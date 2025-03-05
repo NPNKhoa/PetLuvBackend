@@ -2,7 +2,9 @@
 {
     public class ServiceBookingDetail
     {
-        public Guid ServiceVariantId { get; set; }
+        public Guid ServiceId { get; set; }
+        public Guid BreedId { get; set; }
+        public string PetWeightRange { get; set; }
         public Guid BookingId { get; set; }
         public string ServiceItemName { get; set; } = string.Empty;
         public decimal BookingItemPrice { get; set; }

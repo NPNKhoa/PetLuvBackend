@@ -34,6 +34,10 @@ namespace ServiceApi.Infrastructure.Repositories
             }
             catch (Exception ex)
             {
+                if (ex.InnerException != null)
+                {
+                    LogException.LogError($"Inner Exception: {ex.InnerException.Message}");
+                }
                 LogException.LogExceptions(ex);
                 return new Response(false, 500, "Internal Server Error");
             }
@@ -87,6 +91,7 @@ namespace ServiceApi.Infrastructure.Repositories
                 var query = context.Services
                     .AsNoTracking()
                     .Include(s => s.ServiceType)
+                    .Include(s => s.ServiceVariants)
                     .Include(s => s.ServiceImages);
 
                 var totalCount = await query.CountAsync();
@@ -98,10 +103,12 @@ namespace ServiceApi.Infrastructure.Repositories
 
                 if (services is null || services.Count == 0)
                 {
-                    return new Response(false, 404, "Can not find any service");
+                    return new Response(false, 404, "Can not find any s ervice");
                 }
 
-                var (_, responseData) = ServiceConversion.FromEntity(null, services);
+                var breedMapping = await _breedMappingClient.GetBreedMappingAsync();
+
+                var (_, responseData) = ServiceConversion.FromEntity(null, services, breedMapping);
 
                 return new Response(true, 200, "Service retrieved successfully")
                 {
@@ -162,9 +169,9 @@ namespace ServiceApi.Infrastructure.Repositories
             {
                 var service = await FindServiceById(id, true, true);
 
-                if (service is null)
+                if (service is null || service.IsVisible == false)
                 {
-                    return new Response(false, 404, $"Can not find any service with id {id}");
+                    return new Response(false, 404, "Dịch vụ này đã bị xóa hoặc không tồn tại");
                 }
 
                 var breedMapping = await _breedMappingClient.GetBreedMappingAsync();

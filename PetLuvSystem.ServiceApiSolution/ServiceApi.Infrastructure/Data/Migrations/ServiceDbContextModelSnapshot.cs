@@ -100,6 +100,9 @@ namespace ServiceApi.Infrastructure.Data.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<int>("EstimateTime")
+                        .HasColumnType("int");
+
                     b.Property<bool>("IsVisible")
                         .HasColumnType("bit");
 
@@ -145,21 +148,21 @@ namespace ServiceApi.Infrastructure.Data.Migrations
                     b.HasData(
                         new
                         {
-                            ServiceTypeId = new Guid("bb9189a5-b65a-4bb8-979b-fcb69b1d2ead"),
+                            ServiceTypeId = new Guid("4c58986e-361c-48f9-b131-0a8458c5604c"),
                             IsVisible = false,
                             ServiceTypeDesc = "Cung cấp các dịch vụ spa cho thú cưng trực tiếp tại cửa hàng",
                             ServiceTypeName = "Dịch vụ spa"
                         },
                         new
                         {
-                            ServiceTypeId = new Guid("44b1b972-4190-4acc-86ed-57cfc8bfe201"),
+                            ServiceTypeId = new Guid("3f2c2956-993d-4445-a305-109f172b54fe"),
                             IsVisible = false,
                             ServiceTypeDesc = "Chúng tôi sẵn sàng trực tiếp đến nhà chăm sóc cho \"boss\" của bạn nếu bạn đang quá bận",
                             ServiceTypeName = "Dịch vụ spa tại nhà"
                         },
                         new
                         {
-                            ServiceTypeId = new Guid("9b233771-2a56-4f21-a04c-9ff2f931f28c"),
+                            ServiceTypeId = new Guid("5f255741-b98a-4d13-9581-47c55a7ae33a"),
                             IsVisible = false,
                             ServiceTypeDesc = "Nếu bạn đang quá bận để giúp cún cưng của mình giải tỏa năng lượng, hãy để chúng tôi giúp bạn làm điều đó",
                             ServiceTypeName = "Dịch vụ dắt chó đi dạo"
@@ -176,6 +179,9 @@ namespace ServiceApi.Infrastructure.Data.Migrations
 
                     b.Property<string>("PetWeightRange")
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("EstimateTime")
+                        .HasColumnType("int");
 
                     b.Property<bool>("IsVisible")
                         .HasColumnType("bit");

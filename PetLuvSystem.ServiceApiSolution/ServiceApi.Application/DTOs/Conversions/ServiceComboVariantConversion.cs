@@ -11,6 +11,7 @@ namespace ServiceApi.Application.DTOs.Conversions
             BreedId = dto.BreedId,
             WeightRange = dto.WeightRange,
             ComboPrice = dto.ComboPrice,
+            EstimateTime = dto.EstimateTime,
             IsVisible = dto.IsVisible,
         };
 
@@ -20,6 +21,7 @@ namespace ServiceApi.Application.DTOs.Conversions
             BreedId = dto.BreedId,
             WeightRange = dto.WeightRange,
             ComboPrice = dto.ComboPrice,
+            EstimateTime = dto.EstimateTime,
             IsVisible = dto.IsVisible,
             ServiceCombo = null
         };
@@ -35,6 +37,7 @@ namespace ServiceApi.Application.DTOs.Conversions
                     string.Empty,
                     serviceComboVariant.WeightRange,
                     serviceComboVariant.ComboPrice,
+                    serviceComboVariant.EstimateTime,
                     serviceComboVariant.IsVisible
                 );
                 return (singleServiceComboVariant, null);
@@ -49,6 +52,7 @@ namespace ServiceApi.Application.DTOs.Conversions
                     string.Empty,
                     p.WeightRange,
                     p.ComboPrice,
+                    p.EstimateTime,
                     p.IsVisible
                 )).ToList();
 

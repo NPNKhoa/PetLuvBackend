@@ -7,6 +7,5 @@
         public bool IsVisible { get; set; }
 
         public virtual ICollection<Payment> Payments { get; set; }
-        public virtual ICollection<PaymentHistory> PaymentHistories { get; set; }
     }
 }

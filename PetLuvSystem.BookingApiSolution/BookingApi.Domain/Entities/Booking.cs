@@ -9,6 +9,7 @@
         public decimal TotalAmount { get; set; }
         public decimal DepositAmount { get; set; }
         public string TotalEstimateTime { get; set; } = string.Empty;
+        public int? RoomRentalTime { get; set; }
 
         public Guid BookingTypeId { get; set; }
         public virtual BookingType BookingType { get; set; }

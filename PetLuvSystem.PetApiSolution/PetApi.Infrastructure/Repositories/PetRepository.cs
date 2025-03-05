@@ -206,7 +206,7 @@ namespace PetApi.Infrastructure.Repositories
             {
                 var pet = await FindById(id, true, true);
 
-                if (pet is null)
+                if (pet is null || pet.IsVisible == false)
                 {
                     return new Response(false, 404, "Pet not found");
                 }

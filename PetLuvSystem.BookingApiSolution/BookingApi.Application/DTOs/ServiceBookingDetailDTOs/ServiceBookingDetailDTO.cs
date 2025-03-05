@@ -2,7 +2,9 @@
 {
     public record ServiceBookingDetailDTO
     (
-        Guid ServiceVariantId,
+        Guid ServiceId,
+        Guid BreedId,
+        string PetWeightRange,
         Guid BookingId,
         string ServiceItemName,
         decimal BookingItemPrice

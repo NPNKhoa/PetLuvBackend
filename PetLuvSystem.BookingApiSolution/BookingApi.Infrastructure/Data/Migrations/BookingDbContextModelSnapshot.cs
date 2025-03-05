@@ -56,6 +56,9 @@ namespace BookingApi.Infrastructure.Data.Migrations
                     b.Property<Guid>("PetId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int?>("RoomRentalTime")
+                        .HasColumnType("int");
+
                     b.Property<decimal>("TotalAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
@@ -138,8 +141,14 @@ namespace BookingApi.Infrastructure.Data.Migrations
                     b.Property<Guid>("BookingId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("ServiceVariantId")
+                    b.Property<Guid>("ServiceId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BreedId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("PetWeightRange")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<decimal>("BookingItemPrice")
                         .HasPrecision(18, 2)
@@ -149,7 +158,7 @@ namespace BookingApi.Infrastructure.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("BookingId", "ServiceVariantId");
+                    b.HasKey("BookingId", "ServiceId", "BreedId", "PetWeightRange");
 
                     b.ToTable("ServiceBookingDetails");
                 });
@@ -165,6 +174,13 @@ namespace BookingApi.Infrastructure.Data.Migrations
                     b.Property<decimal>("BookingItemPrice")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("BreedId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("PetWeightRange")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ServiceComboItemName")
                         .IsRequired()

@@ -98,9 +98,9 @@ namespace ServiceApi.Infrastructure.Repositories
             {
                 var serviceComboVariant = await FindByKey(serviceComboId, breedId, WeightRange, true);
 
-                if (serviceComboVariant is null)
+                if (serviceComboVariant is null || serviceComboVariant.IsVisible == false)
                 {
-                    return new Response(false, 404, "Service combo variant not found");
+                    return new Response(false, 404, "Biến thể này đã bị xóa hoặc không tồn tại");
                 }
 
                 var (responseData, _) = ServiceComboVariantConversion.FromEntity(serviceComboVariant, null);

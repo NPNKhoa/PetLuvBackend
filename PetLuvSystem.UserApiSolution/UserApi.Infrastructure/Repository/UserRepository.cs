@@ -91,9 +91,9 @@ namespace UserApi.Infrastructure.Repository
             {
                 var user = await FindById(id, false, true);
 
-                if (user is null)
+                if (user is null || user.IsActive == false)
                 {
-                    return new Response(false, 404, "Không tìm thấy người dùng người id này");
+                    return new Response(false, 404, "Không tìm thấy người dùng id này");
                 }
 
                 var (responseData, _) = UserConversion.FromEntity(user, null!);

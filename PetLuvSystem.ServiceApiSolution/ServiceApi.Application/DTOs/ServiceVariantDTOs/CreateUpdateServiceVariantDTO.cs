@@ -6,6 +6,7 @@
         Guid BreedId,
         string PetWeightRange,
         decimal Price,
+        int EstimateTime,
         bool IsVisible
     );
 }

@@ -103,6 +103,10 @@ namespace ServiceApi.Presentation.Controllers
             }
             catch (Exception ex)
             {
+                if (ex.InnerException != null)
+                {
+                    LogException.LogError($"Inner Exception: {ex.InnerException.Message}");
+                }
                 LogException.LogExceptions(ex);
                 return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error");
             }

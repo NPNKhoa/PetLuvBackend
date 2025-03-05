@@ -45,7 +45,9 @@ namespace BookingApi.Application.DTOs.Conversions
             },
             ServiceBookingDetails = dto.ServiceBookingDetails.Select(s => new ServiceBookingDetail()
             {
-                ServiceVariantId = s.ServiceVariantId,
+                ServiceId = s.ServiceId,
+                BreedId = s.BreedId,
+                PetWeightRange = s.PetWeightRange,
                 BookingId = s.BookingId,
                 ServiceItemName = s.ServiceItemName,
                 BookingItemPrice = s.BookingItemPrice
@@ -53,6 +55,8 @@ namespace BookingApi.Application.DTOs.Conversions
             ServiceComboBookingDetails = dto.ServiceComboBookingDetails.Select(s => new ServiceComboBookingDetail()
             {
                 ServiceComboId = s.ServiceComboId,
+                BreedId = s.BreedId,
+                PetWeightRange = s.PetWeightRange,
                 BookingId = s.BookingId,
                 ServiceComboItemName = s.ServiceComboItemName,
                 BookingItemPrice = s.BookingItemPrice
@@ -65,12 +69,7 @@ namespace BookingApi.Application.DTOs.Conversions
             BookingStartTime = dto.BookingStartTime,
             BookingEndTime = dto.BookingEndTime,
             BookingNote = dto.BookingNote,
-            TotalAmount = dto.TotalAmount,
-            DepositAmount = dto.DepositAmount,
-            TotalEstimateTime = dto.TotalEstimateTime,
             BookingTypeId = dto.BookingTypeId,
-            BookingStatusId = dto.BookingStatusId,
-            PaymentStatusId = dto.PaymentStatusId,
             CustomerId = dto.CustomerId,
             PetId = dto.PetId
         };
@@ -88,6 +87,7 @@ namespace BookingApi.Application.DTOs.Conversions
                         entity.TotalAmount,
                         entity.DepositAmount,
                         entity.TotalEstimateTime,
+                        entity.RoomRentalTime,
                         entity.BookingTypeId,
                         entity.BookingType is not null ? new BookingTypeDTO(
                             entity.BookingType.BookingTypeId,
@@ -112,7 +112,9 @@ namespace BookingApi.Application.DTOs.Conversions
                         entity.ServiceBookingDetails is not null
                             && entity.ServiceBookingDetails.Any()
                                 ? entity.ServiceBookingDetails.Select(s => new ServiceBookingDetailDTO(
-                            s.ServiceVariantId,
+                            s.ServiceId,
+                            s.BreedId,
+                            s.PetWeightRange,
                             s.BookingId,
                             s.ServiceItemName,
                             s.BookingItemPrice
@@ -121,6 +123,8 @@ namespace BookingApi.Application.DTOs.Conversions
                             && entity.ServiceComboBookingDetails.Any()
                             ? entity.ServiceComboBookingDetails.Select(s => new ServiceComboBookingDetailDTO(
                             s.ServiceComboId,
+                            s.BreedId,
+                            s.PetWeightRange,
                             s.BookingId,
                             s.ServiceComboItemName,
                             s.BookingItemPrice
@@ -138,6 +142,7 @@ namespace BookingApi.Application.DTOs.Conversions
                     e.TotalAmount,
                     e.DepositAmount,
                     e.TotalEstimateTime,
+                    e.RoomRentalTime,
                     e.BookingTypeId,
                     e.BookingType is not null ? new BookingTypeDTO(
                         e.BookingType.BookingTypeId,
@@ -162,7 +167,9 @@ namespace BookingApi.Application.DTOs.Conversions
                     e.ServiceBookingDetails is not null
                         && e.ServiceBookingDetails.Any()
                             ? e.ServiceBookingDetails.Select(s => new ServiceBookingDetailDTO(
-                        s.ServiceVariantId,
+                        s.ServiceId,
+                        s.BreedId,
+                        s.PetWeightRange,
                         s.BookingId,
                         s.ServiceItemName,
                         s.BookingItemPrice
@@ -171,6 +178,8 @@ namespace BookingApi.Application.DTOs.Conversions
                         && e.ServiceComboBookingDetails.Any()
                         ? e.ServiceComboBookingDetails.Select(s => new ServiceComboBookingDetailDTO(
                         s.ServiceComboId,
+                        s.BreedId,
+                        s.PetWeightRange,
                         s.BookingId,
                         s.ServiceComboItemName,
                         s.BookingItemPrice

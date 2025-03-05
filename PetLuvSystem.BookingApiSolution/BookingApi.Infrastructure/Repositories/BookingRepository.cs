@@ -4,66 +4,34 @@ using BookingApi.Domain.Entities;
 using BookingApi.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using PetLuvSystem.SharedLibrary.Logs;
-using PetLuvSystem.SharedLibrary.Responses;
 using System.Linq.Expressions;
 
 namespace BookingApi.Infrastructure.Repositories
 {
     public class BookingRepository(BookingDbContext _context) : IBooking
     {
-        public async Task<Response> CreateAsync(Booking entity)
+        public async Task<PetLuvSystem.SharedLibrary.Responses.Response> CreateAsync(Booking entity)
         {
             try
             {
-                if (
-                    entity.BookingStartTime > DateTime.UtcNow
-                    || entity.BookingEndTime > DateTime.UtcNow
-                    || entity.BookingStartTime < entity.BookingEndTime
-                )
-                {
-                    return new Response(false, 400, "Thời gian lịch hẹn không hợp lệ");
-                }
-
-                var existingEntity = await _context.Bookings.FirstOrDefaultAsync(b =>
-                    b.CustomerId == entity.CustomerId
-                    && (
-                        b.RoomBookingItem != null && entity.RoomBookingItem != null
-                        && (b.RoomBookingItem.RoomId == entity.RoomBookingItem.RoomId)
-                    )
-                    && (
-                        b.ServiceBookingDetails != null
-                        && b.ServiceComboBookingDetails != null
-                            && b.ServiceBookingDetails.Count > 0
-                            && b.ServiceComboBookingDetails.Count > 0
-                    )
-                    && b.PetId == entity.PetId
-                    && b.BookingStartTime == entity.BookingStartTime
-                    && b.BookingEndTime == entity.BookingEndTime);
-
-                if (existingEntity is not null)
-                {
-                    return new Response(false, 409, "Đã tồn tại booking tương tự");
-                }
-
-                // Check if pet exist
-
-                // Check if customer exist
-
-                // Check if Schedule is conflict
-
                 await _context.Bookings.AddAsync(entity);
                 await _context.SaveChangesAsync();
 
-                return new Response(true, 200, "OK");
+                return new PetLuvSystem.SharedLibrary.Responses.Response(true, 200, "OK");
             }
             catch (Exception ex)
             {
                 LogException.LogExceptions(ex);
-                return new Response(false, 500, "Internal Server Error");
+
+                if (ex.InnerException is not null)
+                {
+                    LogException.LogError(ex.InnerException.Message);
+                }
+                return new PetLuvSystem.SharedLibrary.Responses.Response(false, 500, "Internal Server Error");
             }
         }
 
-        public async Task<Response> GetAllAsync(int pageIndex = 1, int pageSize = 10)
+        public async Task<PetLuvSystem.SharedLibrary.Responses.Response> GetAllAsync(int pageIndex = 1, int pageSize = 10)
         {
             try
             {
@@ -75,12 +43,12 @@ namespace BookingApi.Infrastructure.Repositories
 
                 if (!entities.Any())
                 {
-                    return new Response(false, 404, "Không tìm thấy booking nào");
+                    return new PetLuvSystem.SharedLibrary.Responses.Response(false, 404, "Không tìm thấy booking nào");
                 }
 
                 var (_, response) = BookingConversion.FromEntity(null, entities);
 
-                return new Response(true, 200, "OK")
+                return new PetLuvSystem.SharedLibrary.Responses.Response(true, 200, "OK")
                 {
                     Data = new
                     {
@@ -96,11 +64,11 @@ namespace BookingApi.Infrastructure.Repositories
             catch (Exception ex)
             {
                 LogException.LogExceptions(ex);
-                return new Response(false, 500, "Internal Server Error");
+                return new PetLuvSystem.SharedLibrary.Responses.Response(false, 500, "Internal Server Error");
             }
         }
 
-        public async Task<Response> GetByAsync(Expression<Func<Booking, bool>> predicate)
+        public async Task<PetLuvSystem.SharedLibrary.Responses.Response> GetByAsync(Expression<Func<Booking, bool>> predicate)
         {
             try
             {
@@ -108,12 +76,12 @@ namespace BookingApi.Infrastructure.Repositories
 
                 if (entity is null)
                 {
-                    return new Response(false, 404, "Không tìm thấy booking này");
+                    return new PetLuvSystem.SharedLibrary.Responses.Response(false, 404, "Không tìm thấy booking này");
                 }
 
                 var (response, _) = BookingConversion.FromEntity(entity, null);
 
-                return new Response(true, 200, "Found")
+                return new PetLuvSystem.SharedLibrary.Responses.Response(true, 200, "Found")
                 {
                     Data = response
                 };
@@ -121,11 +89,11 @@ namespace BookingApi.Infrastructure.Repositories
             catch (Exception ex)
             {
                 LogException.LogExceptions(ex);
-                return new Response(false, 500, "Internal Server Error");
+                return new PetLuvSystem.SharedLibrary.Responses.Response(false, 500, "Internal Server Error");
             }
         }
 
-        public async Task<Response> GetByIdAsync(Guid id)
+        public async Task<PetLuvSystem.SharedLibrary.Responses.Response> GetByIdAsync(Guid id)
         {
             try
             {
@@ -133,12 +101,12 @@ namespace BookingApi.Infrastructure.Repositories
 
                 if (entity is null)
                 {
-                    return new Response(false, 404, "Không tìm thấy booking này");
+                    return new PetLuvSystem.SharedLibrary.Responses.Response(false, 404, "Không tìm thấy booking này");
                 }
 
                 var (response, _) = BookingConversion.FromEntity(entity, null);
 
-                return new Response(true, 200, "Found")
+                return new PetLuvSystem.SharedLibrary.Responses.Response(true, 200, "Found")
                 {
                     Data = response
                 };
@@ -146,11 +114,11 @@ namespace BookingApi.Infrastructure.Repositories
             catch (Exception ex)
             {
                 LogException.LogExceptions(ex);
-                return new Response(false, 500, "Internal Server Error");
+                return new PetLuvSystem.SharedLibrary.Responses.Response(false, 500, "Internal Server Error");
             }
         }
 
-        public async Task<Response> UpdateAsync(Guid id, Booking entity)
+        public async Task<PetLuvSystem.SharedLibrary.Responses.Response> UpdateAsync(Guid id, Booking entity)
         {
             try
             {
@@ -160,7 +128,7 @@ namespace BookingApi.Infrastructure.Repositories
                     || entity.BookingStartTime < entity.BookingEndTime
                 )
                 {
-                    return new Response(false, 400, "Thời gian lịch hẹn không hợp lệ");
+                    return new PetLuvSystem.SharedLibrary.Responses.Response(false, 400, "Thời gian lịch hẹn không hợp lệ");
                 }
 
                 var existingEntity = await _context.Bookings.FirstOrDefaultAsync(b =>
@@ -181,18 +149,8 @@ namespace BookingApi.Infrastructure.Repositories
 
                 if (existingEntity is null)
                 {
-                    return new Response(false, 404, "Không tìm thấy booking cần tìm");
+                    return new PetLuvSystem.SharedLibrary.Responses.Response(false, 404, "Không tìm thấy booking cần tìm");
                 }
-
-                /* TODO:
-                 * 
-                 * Check if pet exist
-                 * 
-                 * Check if customer exist
-                 * 
-                 * Check if Schedule is conflict
-                 * 
-                 */
 
                 existingEntity.BookingStartTime =
                     existingEntity.BookingStartTime != entity.BookingStartTime
@@ -236,7 +194,7 @@ namespace BookingApi.Infrastructure.Repositories
 
                 var (response, _) = BookingConversion.FromEntity(existingEntity, null);
 
-                return new Response(true, 200, "OK")
+                return new PetLuvSystem.SharedLibrary.Responses.Response(true, 200, "OK")
                 {
                     Data = response
                 };
@@ -244,7 +202,7 @@ namespace BookingApi.Infrastructure.Repositories
             catch (Exception ex)
             {
                 LogException.LogExceptions(ex);
-                return new Response(false, 500, "Internal Server Error");
+                return new PetLuvSystem.SharedLibrary.Responses.Response(false, 500, "Internal Server Error");
             }
         }
 
@@ -269,8 +227,56 @@ namespace BookingApi.Infrastructure.Repositories
             return await query.FirstOrDefaultAsync(b => b.BookingId == id) ?? null!;
         }
 
+        public async Task<PetLuvSystem.SharedLibrary.Responses.Response> ValidateBookingCreation(Booking entity)
+        {
+            try
+            {
+                if (
+                    entity.BookingStartTime <= DateTime.UtcNow
+                    || entity.BookingEndTime <= DateTime.UtcNow
+                    || entity.BookingStartTime >= entity.BookingEndTime
+                )
+                {
+                    return new PetLuvSystem.SharedLibrary.Responses.Response(false, 400, "Thời gian lịch hẹn không hợp lệ");
+                }
+
+                var existingEntity = await _context.Bookings.FirstOrDefaultAsync(b =>
+                    b.CustomerId == entity.CustomerId
+                    && (
+                        b.RoomBookingItem != null && entity.RoomBookingItem != null
+                        && (b.RoomBookingItem.RoomId == entity.RoomBookingItem.RoomId)
+                    )
+                    && (
+                        b.ServiceBookingDetails != null
+                        && b.ServiceComboBookingDetails != null
+                            && b.ServiceBookingDetails.Count > 0
+                            && b.ServiceComboBookingDetails.Count > 0
+                    )
+                    && b.PetId == entity.PetId
+                    && b.BookingStartTime == entity.BookingStartTime
+                    && b.BookingEndTime == entity.BookingEndTime);
+
+                if (existingEntity is not null)
+                {
+                    return new PetLuvSystem.SharedLibrary.Responses.Response(false, 409, "Đã tồn tại booking tương tự");
+                }
+
+                return new PetLuvSystem.SharedLibrary.Responses.Response(true, 200, "Validation Success");
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
+
+                if (ex.InnerException is not null)
+                {
+                    LogException.LogError(ex.InnerException.Message);
+                }
+                return new PetLuvSystem.SharedLibrary.Responses.Response(false, 500, "Internal Server Error");
+            }
+        }
+
         // Unused
-        public Task<Response> DeleteAsync(Guid id)
+        public Task<PetLuvSystem.SharedLibrary.Responses.Response> DeleteAsync(Guid id)
         {
             throw new NotImplementedException();
         }

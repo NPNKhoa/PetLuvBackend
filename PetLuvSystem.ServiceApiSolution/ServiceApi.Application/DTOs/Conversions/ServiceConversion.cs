@@ -70,6 +70,7 @@ namespace ServiceApi.Application.DTOs.Conversions
                         (breedMapping != null && breedMapping.TryGetValue(p.BreedId, out var name)) ? name : string.Empty,
                         p.PetWeightRange!,
                         p.Price,
+                        p.EstimateTime,
                         p.IsVisible
                     )).ToList(),
                     service.WalkDogServiceVariants?.Select(p => new WalkDogServiceVariantDTO
@@ -100,6 +101,7 @@ namespace ServiceApi.Application.DTOs.Conversions
                         (breedMapping != null && breedMapping.TryGetValue(variant.BreedId, out var name)) ? name : string.Empty,
                         variant.PetWeightRange!,
                         variant.Price,
+                        variant.EstimateTime,
                         variant.IsVisible
                     )).ToList() ?? new List<ServiceVariantDTO>(),
                     p.WalkDogServiceVariants?.Select(walkVariant => new WalkDogServiceVariantDTO

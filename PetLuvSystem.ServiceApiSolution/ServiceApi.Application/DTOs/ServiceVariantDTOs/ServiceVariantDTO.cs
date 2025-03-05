@@ -7,6 +7,7 @@
         string BreedName,
         string PetWeightRange,
         decimal Price,
+        int EstimateTime,
         bool IsVisible
     );
 }

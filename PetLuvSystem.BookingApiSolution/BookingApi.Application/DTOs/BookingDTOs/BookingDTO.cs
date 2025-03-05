@@ -15,6 +15,7 @@ namespace BookingApi.Application.DTOs.BookingDTOs
         decimal TotalAmount,
         decimal DepositAmount,
         string TotalEstimateTime,
+        int? RoomRentalTime,
         Guid BookingTypeId,
         BookingTypeDTO BookingType,
         Guid BookingStatusId,

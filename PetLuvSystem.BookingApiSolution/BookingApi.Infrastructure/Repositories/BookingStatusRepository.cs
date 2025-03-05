@@ -216,5 +216,12 @@ namespace BookingApi.Infrastructure.Repositories
 
             return await query.FirstOrDefaultAsync(b => b.BookingStatusId == id) ?? null!;
         }
+
+        public async Task<Guid> FindBookingStatusIdByName(string bookingStatusName)
+        {
+            return (await _context.BookingStatuses.FirstOrDefaultAsync(
+                x => x.BookingStatusName.ToLower().Trim().Equals(bookingStatusName.ToLower().Trim())
+            ))?.BookingStatusId ?? Guid.Empty;
+        }
     }
 }

@@ -8,7 +8,6 @@ namespace PaymentApi.Infrastructure.Data
         public DbSet<Payment> Payment { get; set; }
         public DbSet<PaymentMethod> PaymentMethod { get; set; }
         public DbSet<PaymentStatus> PaymentStatus { get; set; }
-        public DbSet<PaymentHistory> PaymentHistory { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -29,23 +28,21 @@ namespace PaymentApi.Infrastructure.Data
             // PaymentMethod
             modelBuilder.Entity<PaymentMethod>().HasKey(pm => pm.PaymentMethodId);
 
+            modelBuilder.Entity<PaymentMethod>().HasData(
+                new PaymentMethod { PaymentMethodId = Guid.NewGuid(), PaymentMethodName = "Thanh toán qua VNPay", IsVisible = true },
+                new PaymentMethod { PaymentMethodId = Guid.NewGuid(), PaymentMethodName = "Thanh toán tại cửa hàng", IsVisible = true },
+                new PaymentMethod { PaymentMethodId = Guid.NewGuid(), PaymentMethodName = "Thanh toán khi nhận hàng", IsVisible = true }
+            );
+
             // PaymentStatus
             modelBuilder.Entity<PaymentStatus>().HasKey(ps => ps.PaymentStatusId);
 
-            // PaymentHistory
-            modelBuilder.Entity<PaymentHistory>().HasKey(ph => ph.PaymentHistoryId);
-
-            modelBuilder.Entity<PaymentHistory>()
-                .HasOne(ph => ph.Payment)
-                .WithMany(p => p.PaymentHistories)
-                .HasForeignKey(ph => ph.PaymentId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<PaymentHistory>()
-                .HasOne(ph => ph.PaymentStatus)
-                .WithMany(ps => ps.PaymentHistories)
-                .HasForeignKey(ph => ph.PaymentStatusId)
-                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<PaymentStatus>().HasData(
+                new PaymentStatus { PaymentStatusId = Guid.NewGuid(), PaymentStatusName = "Chờ thanh toán", IsVisible = true },
+                new PaymentStatus { PaymentStatusId = Guid.NewGuid(), PaymentStatusName = "Đã đặt cọc", IsVisible = true },
+                new PaymentStatus { PaymentStatusId = Guid.NewGuid(), PaymentStatusName = "Đã thanh toán", IsVisible = true },
+                new PaymentStatus { PaymentStatusId = Guid.NewGuid(), PaymentStatusName = "Thanh toán thất bại", IsVisible = true }
+            );
         }
     }
 }

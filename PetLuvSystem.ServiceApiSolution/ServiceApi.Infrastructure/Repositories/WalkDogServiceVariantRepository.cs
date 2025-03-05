@@ -85,9 +85,9 @@ namespace ServiceApi.Infrastructure.Repositories
             {
                 var serviceVariant = await FindByKeyAsync(serviceId, breedId, true);
 
-                if (serviceVariant == null)
+                if (serviceVariant == null || serviceVariant.IsVisible == false)
                 {
-                    return new Response(false, 404, "Service Variant Not Found");
+                    return new Response(false, 404, "Biến thể này đã bị xóa hoặc không tồn tại");
                 }
 
                 var (responseData, _) = WalkDogServiceVariantConversion.FromEntity(serviceVariant, null);

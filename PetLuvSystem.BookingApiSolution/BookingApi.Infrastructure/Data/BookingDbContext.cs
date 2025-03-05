@@ -72,7 +72,7 @@ namespace BookingApi.Infrastructure.Data
 
             // ServiceBookingDetail
             modelBuilder.Entity<ServiceBookingDetail>()
-               .HasKey(r => new { r.BookingId, r.ServiceVariantId });
+               .HasKey(r => new { r.BookingId, r.ServiceId, r.BreedId, r.PetWeightRange });
 
             modelBuilder.Entity<ServiceBookingDetail>()
                 .Property(b => b.BookingItemPrice)
@@ -85,6 +85,16 @@ namespace BookingApi.Infrastructure.Data
             modelBuilder.Entity<ServiceComboBookingDetail>()
                 .Property(b => b.BookingItemPrice)
                 .HasPrecision(18, 2);
+
+            // SEED
+            modelBuilder.Entity<BookingStatus>().HasData(
+                new BookingStatus
+                {
+                    BookingStatusId = Guid.NewGuid(),
+                    BookingStatusName = "Đang xử lý",
+                    IsVisible = true
+                }
+            );
         }
 
     }

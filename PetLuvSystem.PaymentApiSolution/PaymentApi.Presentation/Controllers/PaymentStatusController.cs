@@ -7,15 +7,39 @@ using PetLuvSystem.SharedLibrary.Responses;
 
 namespace PaymentApi.Presentation.Controllers
 {
-    [Route("api/payment-status")]
+    [Route("api/payment-statuses")]
     [ApiController]
     public class PaymentStatusController(IPaymentStatus _paymentStatus) : ControllerBase
     {
         [HttpGet]
-        public async Task<IActionResult> GetPaymentStatuses([FromQuery] int pageIndex, [FromQuery] int pageSize)
+        public async Task<IActionResult> GetPaymentStatuses([FromQuery] int? pageIndex, [FromQuery] int? pageSize)
         {
-            var response = await _paymentStatus.GetAllAsync(pageIndex, pageSize);
+            int validPageIndex = pageIndex.GetValueOrDefault(1);
+            int validPageSize = pageSize.GetValueOrDefault(10);
+
+            if (validPageIndex <= 0 || validPageSize <= 0)
+            {
+                return (new Response(false, 400, "PageIndex và PageSize phải lớn hơn 0")).ToActionResult(this);
+            }
+
+            var response = await _paymentStatus.GetAllAsync(validPageIndex, validPageSize);
             return response.ToActionResult(this);
+        }
+
+        [HttpGet("by-name")]
+        public async Task<IActionResult> GetPaymentStatusIdByName([FromQuery] string paymentStatusName)
+        {
+            var paymentStatus = await _paymentStatus.FindByName(paymentStatusName);
+
+            if (paymentStatus is null)
+            {
+                return (new Response(false, 404, "Không tìm thấy trạng thái thanh toán này")).ToActionResult(this);
+            }
+
+            return (new Response(true, 200, "Found")
+            {
+                Data = paymentStatus.PaymentStatusId
+            }).ToActionResult(this);
         }
 
         [HttpGet("{id}")]

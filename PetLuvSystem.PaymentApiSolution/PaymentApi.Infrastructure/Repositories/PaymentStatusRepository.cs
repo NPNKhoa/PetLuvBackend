@@ -20,7 +20,7 @@ namespace PaymentApi.Infrastructure.Repositories
 
                 if (existingEntity != null)
                 {
-                    return new Response(false, 400, "Trạng thái thanh toán đã tồn tại");
+                    return new Response(false, 400, "trạng thái thanh toán đã tồn tại");
                 }
 
                 await _context.PaymentStatus.AddAsync(entity);
@@ -59,7 +59,7 @@ namespace PaymentApi.Infrastructure.Repositories
                     return new Response(true, 200, "Ẩn trạng thái thanh toán thành công");
                 }
 
-                if (existingEntity.Payments.Any() || existingEntity.PaymentHistories.Any())
+                if (existingEntity.Payments.Any())
                 {
                     return new Response(false, 400, "Không thể xóa trạng thái thanh toán này vì có dữ liệu liên quan");
                 }
@@ -138,7 +138,7 @@ namespace PaymentApi.Infrastructure.Repositories
 
                 if (existingEntity is null || existingEntity.IsVisible == false)
                 {
-                    return new Response(false, 404, "Trạng thái thanh toán cần tìm không tồn tại hoặc bị xóa");
+                    return new Response(false, 404, "trạng thái thanh toán cần tìm không tồn tại hoặc bị xóa");
                 }
 
                 var (response, _) = PaymentStatusConversion.FromEntity(existingEntity, null);
@@ -163,7 +163,7 @@ namespace PaymentApi.Infrastructure.Repositories
 
                 if (existingEntity == null || existingEntity.IsVisible == false)
                 {
-                    return new Response(false, 404, "Trạng thái thanh toán cần tìm không tồn tại hoặc bị xóa");
+                    return new Response(false, 404, "trạng thái thanh toán cần tìm không tồn tại hoặc bị xóa");
                 }
 
                 bool hasChanges = existingEntity.PaymentStatusName != entity.PaymentStatusName
@@ -204,11 +204,44 @@ namespace PaymentApi.Infrastructure.Repositories
 
             if (includeRelated)
             {
-                query = query.Include(x => x.Payments)
-                             .Include(x => x.PaymentHistories);
+                query = query.Include(x => x.Payments);
             }
 
             return await query.FirstOrDefaultAsync(x => x.PaymentStatusId == id) ?? null!;
+        }
+
+        public async Task<Response> UpdatePaymentStatus(Guid bookingId, Guid statusId)
+        {
+            try
+            {
+                var existingPaymentStatus = await _context.Payment.FirstOrDefaultAsync(x => x.OrderId == bookingId);
+
+                if (existingPaymentStatus is null)
+                {
+                    return new Response(false, 404, "Không tìm thấy payment với booking id");
+                }
+
+                if (await _context.PaymentStatus.FindAsync(statusId) is null)
+                {
+                    return new Response(false, 404, "Không tìm thấy payment status");
+                }
+
+                existingPaymentStatus.PaymentStatusId = statusId;
+
+                await _context.SaveChangesAsync();
+
+                return new Response(true, 200, "Cập nhật thành công");
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
+                return new Response(false, 500, "Internal Server Error");
+            }
+        }
+
+        public async Task<PaymentStatus> FindByName(string paymentStatusName)
+        {
+            return await _context.PaymentStatus.FirstOrDefaultAsync(x => x.PaymentStatusName.ToLower().Trim().Equals(paymentStatusName.Trim().ToLower())) ?? null!;
         }
     }
 }

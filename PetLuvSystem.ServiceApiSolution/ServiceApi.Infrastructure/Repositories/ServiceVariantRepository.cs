@@ -72,9 +72,9 @@ namespace ServiceApi.Infrastructure.Repositories
             {
                 var serviceVariant = await FindByKeyAsync(serviceId, breedId, petWeightRange, true);
 
-                if (serviceVariant is null)
+                if (serviceVariant is null || serviceVariant.IsVisible == false)
                 {
-                    return new Response(false, 404, "Service Variant not found");
+                    return new Response(false, 404, "Biến thể này đã bị xóa hoặc không tồn tại");
                 }
 
                 var (responseData, _) = ServiceVariantConversion.FromEntity(serviceVariant, null);

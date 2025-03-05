@@ -43,6 +43,7 @@ namespace ServiceApi.Application.DTOs.Conversions
                         (breedMapping != null && breedMapping.TryGetValue(x.BreedId, out var name)) ? name : string.Empty,
                         x.WeightRange,
                         x.ComboPrice,
+                        x.EstimateTime,
                         x.IsVisible
                     )).ToList(),
                     serviceCombo.ServiceComboMappings?.Select(x => new ServiceDTO(
@@ -72,6 +73,7 @@ namespace ServiceApi.Application.DTOs.Conversions
                         (breedMapping != null && breedMapping.TryGetValue(x.BreedId, out var name)) ? name : string.Empty,
                         x.WeightRange,
                         x.ComboPrice,
+                        x.EstimateTime,
                         x.IsVisible
                     )).ToList(),
                     p.ServiceComboMappings?.Select(x => new ServiceDTO(
