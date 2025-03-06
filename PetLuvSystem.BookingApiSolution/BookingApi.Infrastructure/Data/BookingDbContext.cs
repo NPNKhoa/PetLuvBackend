@@ -93,6 +93,24 @@ namespace BookingApi.Infrastructure.Data
                     BookingStatusId = Guid.NewGuid(),
                     BookingStatusName = "Đang xử lý",
                     IsVisible = true
+                },
+                new BookingStatus
+                {
+                    BookingStatusId = Guid.NewGuid(),
+                    BookingStatusName = "Đã xác nhận",
+                    IsVisible = true
+                },
+                new BookingStatus
+                {
+                    BookingStatusId = Guid.NewGuid(),
+                    BookingStatusName = "Đã hoàn thành",
+                    IsVisible = true
+                },
+                new BookingStatus
+                {
+                    BookingStatusId = Guid.NewGuid(),
+                    BookingStatusName = "Đã hủy",
+                    IsVisible = true
                 }
             );
         }

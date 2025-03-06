@@ -242,23 +242,15 @@ namespace BookingApi.Infrastructure.Repositories
 
                 var existingEntity = await _context.Bookings.FirstOrDefaultAsync(b =>
                     b.CustomerId == entity.CustomerId
-                    && (
-                        b.RoomBookingItem != null && entity.RoomBookingItem != null
-                        && (b.RoomBookingItem.RoomId == entity.RoomBookingItem.RoomId)
-                    )
-                    && (
-                        b.ServiceBookingDetails != null
-                        && b.ServiceComboBookingDetails != null
-                            && b.ServiceBookingDetails.Count > 0
-                            && b.ServiceComboBookingDetails.Count > 0
-                    )
                     && b.PetId == entity.PetId
-                    && b.BookingStartTime == entity.BookingStartTime
-                    && b.BookingEndTime == entity.BookingEndTime);
+                    && (b.BookingStartTime == entity.BookingStartTime
+                            || b.BookingEndTime >= entity.BookingStartTime
+                        )
+                    );
 
                 if (existingEntity is not null)
                 {
-                    return new PetLuvSystem.SharedLibrary.Responses.Response(false, 409, "Đã tồn tại booking tương tự");
+                    return new PetLuvSystem.SharedLibrary.Responses.Response(false, 409, "Đã tồn tại lịch hẹn cho thú cưng này trong khoảng thời gian này");
                 }
 
                 return new PetLuvSystem.SharedLibrary.Responses.Response(true, 200, "Validation Success");

@@ -88,12 +88,12 @@ namespace ServiceApi.Presentation.Controllers
 
                     var jobDetail = JobBuilder.Create<DeleteServiceJob>()
                         .WithIdentity($"DeleteServiceJob-{service.ServiceId}")
-                        .UsingJobData("ServiceId", service.ServiceId) // Gắn ServiceId
+                        .UsingJobData("ServiceId", service.ServiceId)
                         .Build();
 
                     var trigger = TriggerBuilder.Create()
                         .WithIdentity($"DeleteServiceTrigger-{service.ServiceId}")
-                        .StartAt(DateTimeOffset.Now.AddMinutes(30)) // Thời gian 30 phút
+                        .StartAt(DateTimeOffset.Now.AddMinutes(30))
                         .Build();
 
                     await scheduler.ScheduleJob(jobDetail, trigger);

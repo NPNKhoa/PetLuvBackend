@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using MassTransit;
+using Microsoft.AspNetCore.Mvc;
 using PaymentApi.Application.DTOs.Conversions;
 using PaymentApi.Application.DTOs.PaymentDTOs;
 using PaymentApi.Application.Interfaces;
 using PaymentApi.Domain.Entities;
+using PetLuvSystem.SharedLibrary.Contracts.Events;
 using PetLuvSystem.SharedLibrary.Logs;
-using PetLuvSystem.SharedLibrary.Responses;
 using VNPAY.NET;
 using VNPAY.NET.Enums;
 using VNPAY.NET.Models;
@@ -14,7 +15,8 @@ namespace PaymentApi.Presentation.Controllers
 {
     [Route("api/payments")]
     [ApiController]
-    public class PaymentController(IVnpay _vnpay, IConfiguration _configuration, IPaymentStatus _paymentStatus, IPaymentMethod _paymentMethod, IPayment _payment) : ControllerBase
+    public class PaymentController(IVnpay _vnpay, IConfiguration _configuration, IPublishEndpoint _bus,
+        IPaymentStatus _paymentStatus, IPaymentMethod _paymentMethod, IPayment _payment) : ControllerBase
     {
         [HttpGet]
         public async Task<IActionResult> GetPayments([FromQuery] int? pageIndex = 1, [FromQuery] int? pageSize = 10)
@@ -24,7 +26,7 @@ namespace PaymentApi.Presentation.Controllers
 
             if (validPageIndex <= 0 || validPageSize <= 0)
             {
-                return (new Response(false, 400, "PageIndex và PageSize phải lớn hơn 0")).ToActionResult(this);
+                return (new PetLuvSystem.SharedLibrary.Responses.Response(false, 400, "PageIndex và PageSize phải lớn hơn 0")).ToActionResult(this);
             }
 
             var response = await _payment.GetAllAsync(validPageIndex, validPageSize);
@@ -47,7 +49,7 @@ namespace PaymentApi.Presentation.Controllers
                     .SelectMany(x => x.Errors)
                     .Select(x => x.ErrorMessage));
 
-                return (new Response(false, 400, errorMessages)).ToActionResult(this);
+                return (new PetLuvSystem.SharedLibrary.Responses.Response(false, 400, errorMessages)).ToActionResult(this);
             }
 
             try
@@ -58,7 +60,7 @@ namespace PaymentApi.Presentation.Controllers
             catch (Exception ex)
             {
                 LogException.LogExceptions(ex);
-                return (new Response(false, 500, "Internal Server Error")).ToActionResult(this);
+                return (new PetLuvSystem.SharedLibrary.Responses.Response(false, 500, "Internal Server Error")).ToActionResult(this);
             }
         }
 
@@ -71,7 +73,7 @@ namespace PaymentApi.Presentation.Controllers
                     .SelectMany(x => x.Errors)
                     .Select(x => x.ErrorMessage));
 
-                return (new Response(false, 400, errorMessages)).ToActionResult(this);
+                return (new PetLuvSystem.SharedLibrary.Responses.Response(false, 400, errorMessages)).ToActionResult(this);
             }
 
             try
@@ -82,7 +84,7 @@ namespace PaymentApi.Presentation.Controllers
             catch (Exception ex)
             {
                 LogException.LogExceptions(ex);
-                return (new Response(false, 500, "Internal Server Error")).ToActionResult(this);
+                return (new PetLuvSystem.SharedLibrary.Responses.Response(false, 500, "Internal Server Error")).ToActionResult(this);
             }
         }
 
@@ -120,14 +122,14 @@ namespace PaymentApi.Presentation.Controllers
 
                 if (paymentStatus is null)
                 {
-                    return (new Response(false, 404, "Không tìm thấy trạng thái thanh toán")).ToActionResult(this);
+                    return (new PetLuvSystem.SharedLibrary.Responses.Response(false, 404, "Không tìm thấy trạng thái thanh toán")).ToActionResult(this);
                 }
 
                 var paymentMethod = await _paymentMethod.FindByName("Thanh toán qua VNPay");
 
                 if (paymentMethod is null)
                 {
-                    return (new Response(false, 404, "Không tìm thấy trạng thái thanh toán")).ToActionResult(this);
+                    return (new PetLuvSystem.SharedLibrary.Responses.Response(false, 404, "Không tìm thấy trạng thái thanh toán")).ToActionResult(this);
                 }
 
                 var currentTime = DateTime.UtcNow;
@@ -156,20 +158,52 @@ namespace PaymentApi.Presentation.Controllers
         }
 
         [HttpGet("IpnAction")]
-        public IActionResult IpnAction()
+        public async Task<IActionResult> IpnAction()
         {
             if (Request.QueryString.HasValue)
             {
                 try
                 {
                     var paymentResult = _vnpay.GetPaymentResult(Request.Query);
+                    var payment = await _payment.FindByRef(paymentResult.PaymentId.ToString());
+
+
                     if (paymentResult.IsSuccess)
                     {
-                        // Thực hiện hành động nếu thanh toán thành công tại đây. Ví dụ: Cập nhật trạng thái đơn hàng trong cơ sở dữ liệu.
+                        // Update Payment Status
+                        var paymentStatus = await _paymentStatus.FindByName("Đã đặt cọc");
+
+                        if (paymentStatus is null)
+                        {
+                            return (new PetLuvSystem.SharedLibrary.Responses.Response(false, 500, "Không tìm thấy paymnet status")).ToActionResult(this);
+                        }
+
+                        payment.PaymentStatusId = paymentStatus.PaymentStatusId;
+                        await _payment.UpdateAsync(payment.PaymentId, payment);
+
+                        // Publish the PaymentCompletedEvent
+                        await _bus.Publish(
+                            new PaymentCompletedEvent
+                            {
+                                BookingId = payment.OrderId,
+                                PaidAt = paymentResult.Timestamp
+                            }
+                        );
+
                         return Ok();
                     }
 
                     // Thực hiện hành động nếu thanh toán thất bại tại đây. Ví dụ: Hủy đơn hàng.
+
+                    await _bus.Publish(
+                        new PaymentRejectedEvent
+                        {
+                            BookingId = payment.OrderId,
+                            FailedAt = paymentResult.Timestamp,
+                            Reason = paymentResult.PaymentResponse.Description
+                        }
+                    );
+
                     return BadRequest("Thanh toán thất bại");
                 }
                 catch (Exception ex)

@@ -257,5 +257,10 @@ namespace PaymentApi.Infrastructure.Repositories
 
             return await query.FirstOrDefaultAsync(p => p.PaymentId == id) ?? null!;
         }
+
+        public async Task<Payment> FindByRef(string transactionRef)
+        {
+            return await _context.Payment.FirstOrDefaultAsync(x => x.TransactionRef.Equals(transactionRef))!;
+        }
     }
 }

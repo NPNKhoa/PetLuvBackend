@@ -48,11 +48,12 @@ namespace ServiceApi.Application.DTOs.Conversions
                     )).ToList(),
                     serviceCombo.ServiceComboMappings?.Select(x => new ServiceDTO(
                         x.ServiceId,
-                        "",
-                        "",
-                        false,
-                        "",
-                        new List<string>(),
+                        x.Service is not null ? x.Service.ServiceName : "",
+                        x.Service is not null ? x.Service.ServiceDesc : "",
+                        x.Service is not null ? x.Service.IsVisible : false,
+                        x.Service is not null ? x.Service.ServiceTypeId : Guid.Empty,
+                        x.Service is not null && x.Service.ServiceType is not null ? x.Service.ServiceType.ServiceTypeName : "",
+                        x.Service?.ServiceImages?.Select(s => s.ServiceImagePath).ToList()!,
                         new List<ServiceVariantDTO>(),
                         new List<WalkDogServiceVariantDTO>()
                     )).ToList()
@@ -78,11 +79,12 @@ namespace ServiceApi.Application.DTOs.Conversions
                     )).ToList(),
                     p.ServiceComboMappings?.Select(x => new ServiceDTO(
                         x.ServiceId,
-                        "",
-                        "",
-                        false,
-                        "",
-                        new List<string>(),
+                        x.Service is not null ? x.Service.ServiceName : "",
+                        x.Service is not null ? x.Service.ServiceDesc : "",
+                        x.Service is not null ? x.Service.IsVisible : false,
+                        x.Service is not null ? x.Service.ServiceTypeId : Guid.Empty,
+                        x.Service is not null && x.Service.ServiceType is not null ? x.Service.ServiceType.ServiceTypeName : "",
+                        x.Service?.ServiceImages?.Select(s => s.ServiceImagePath).ToList()!,
                         new List<ServiceVariantDTO>(),
                         new List<WalkDogServiceVariantDTO>()
                     )).ToList()

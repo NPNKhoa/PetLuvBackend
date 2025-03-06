@@ -13,6 +13,7 @@ namespace ServiceApi.Application.DTOs.ServiceDTOs
         [StringLength(500, ErrorMessage = "Service description cannot exceed 500 characters.")]
         string? ServiceDesc,
         bool IsVisible,
+        Guid ServiceTypeId,
         string? ServiceTypeName,
         ICollection<string>? ServiceImageUrls,
         ICollection<ServiceVariantDTO>? ServiceVariants,

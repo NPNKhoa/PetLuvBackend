@@ -98,11 +98,26 @@ namespace BookingOrchestrator.Application.Saga
                     )
                     .TransitionTo(Completed),
 
+                When(PaymentRejected)
+                    .Then(context =>
+                    {
+                        context.Saga.Status = "Payment Rejected";
+                        context.Saga.CanceledAt = DateTime.UtcNow;
+                    })
+                    .SendAsync(new Uri("queue:booking-service"), context =>
+                        Task.FromResult(new CancelBookingCommand
+                        {
+                            BookingId = context.Message.BookingId,
+                            Reason = context.Message.Reason
+                        })
+                    )
+                    .TransitionTo(Canceled),
+
                 When(PaymentSystemError)
                     .Then(context =>
                     {
-                        context.Saga.CreatedAt = DateTime.UtcNow;
-                        context.Saga.Status = "Canceled";
+                        context.Saga.CanceledAt = DateTime.UtcNow;
+                        context.Saga.Status = "Payment System Error";
                     })
                     .TransitionTo(Canceled)
             );

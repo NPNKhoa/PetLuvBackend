@@ -171,6 +171,8 @@ namespace BookingApi.Presentation.Controllers
                 entity.TotalAmount = totalAmount;
                 entity.DepositAmount = 0;
 
+                LogException.LogInformation($"[Booking service] Entity Total Amount: {entity.TotalAmount} - totalAmount: {totalAmount}");
+
                 var response = await _booking.CreateAsync(entity);
 
                 if (response.Flag == true)

@@ -61,6 +61,7 @@ namespace ServiceApi.Application.DTOs.Conversions
                     service.ServiceName,
                     service.ServiceDesc,
                     service.IsVisible,
+                    service.ServiceTypeId,
                     service.ServiceType?.ServiceTypeName,
                     service.ServiceImages?.Select(p => p.ServiceImagePath).ToList()!,
                     service.ServiceVariants?.Select(p => new ServiceVariantDTO
@@ -92,6 +93,7 @@ namespace ServiceApi.Application.DTOs.Conversions
                     p.ServiceName,
                     p.ServiceDesc,
                     p.IsVisible,
+                    p.ServiceTypeId,
                     p.ServiceType?.ServiceTypeName,
                     p.ServiceImages?.Select(img => img.ServiceImagePath).ToList()!,
                     p.ServiceVariants?.Select(variant => new ServiceVariantDTO
