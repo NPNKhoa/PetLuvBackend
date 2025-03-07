@@ -9,7 +9,7 @@ using System.Linq.Expressions;
 
 namespace ServiceApi.Infrastructure.Repositories
 {
-    public class ServiceVariantRepository(ServiceDbContext context) : IServiceVariant
+    public class ServiceVariantRepository(ServiceDbContext context, IServiceVariantCachingService _cacheService) : IServiceVariant
     {
         public async Task<Response> CreateAsync(ServiceVariant entity)
         {
@@ -26,6 +26,9 @@ namespace ServiceApi.Infrastructure.Repositories
                                             ?? throw new Exception("Failed to create service variant");
 
                 await context.SaveChangesAsync();
+
+                var entities = await context.ServiceVariants.Where(s => s.IsVisible == true).ToListAsync();
+                await _cacheService.UpdateCacheAsync(entities);
 
                 var (responseData, _) = ServiceVariantConversion.FromEntity(entity, null);
 
@@ -142,6 +145,9 @@ namespace ServiceApi.Infrastructure.Repositories
 
                 var (responseData, _) = ServiceVariantConversion.FromEntity(existingServiceVariant, null);
 
+                var entities = await context.ServiceVariants.Where(s => s.IsVisible == true).ToListAsync();
+                await _cacheService.UpdateCacheAsync(entities);
+
                 return new Response(true, 200, "Service Variant updated successfully")
                 {
                     Data = new { data = responseData }
@@ -171,6 +177,8 @@ namespace ServiceApi.Infrastructure.Repositories
                 {
                     existingServiceVariant.IsVisible = false;
                     await context.SaveChangesAsync();
+                    var entities = await context.ServiceVariants.Where(s => s.IsVisible == true).ToListAsync();
+                    await _cacheService.UpdateCacheAsync(entities);
                     return new Response(false, 200, "Service Variant was made as hidden successfully")
                     {
                         Data = new { data = responseData }
@@ -179,6 +187,8 @@ namespace ServiceApi.Infrastructure.Repositories
 
                 context.Remove(existingServiceVariant);
                 await context.SaveChangesAsync();
+                var entitiess = await context.ServiceVariants.Where(s => s.IsVisible == true).ToListAsync();
+                await _cacheService.UpdateCacheAsync(entitiess);
 
                 return new Response(true, 200, "Service Variant deleted successfully")
                 {
@@ -220,9 +230,27 @@ namespace ServiceApi.Infrastructure.Repositories
         {
             throw new NotImplementedException();
         }
-        public Task<Response> GetAllAsync(int pageIndex, int pageSize)
+        public async Task<Response> GetAllAsync(int pageIndex, int pageSize)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var entities = await context.ServiceVariants.ToListAsync();
+
+                if (entities is null || !entities.Any())
+                {
+                    return new Response(false, 404, "Không tìm thấy biển thể nào trong database");
+                }
+
+                return new Response(true, 200, "Found")
+                {
+                    Data = entities
+                };
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
+                return new Response(false, 500, "Internal Server Error");
+            }
         }
     }
 }

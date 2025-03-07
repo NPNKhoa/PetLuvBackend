@@ -6,6 +6,7 @@ using PetLuvSystem.SharedLibrary.Helpers.CloudinaryHelper;
 using UserApi.Application.Interfaces;
 using UserApi.Infrastructure.Data;
 using UserApi.Infrastructure.Repository;
+using UserApi.Infrastructure.Services;
 
 namespace UserApi.Infrastructure.DependencyInjection
 {
@@ -21,6 +22,9 @@ namespace UserApi.Infrastructure.DependencyInjection
             services.AddScoped<IStaffDegree, StaffDegreeRepository>();
             services.AddScoped<IWorkSchedule, WorkScheduleRepository>();
             services.AddScoped<IWorkScheduleDetail, WorkScheduleDetailRepository>();
+
+            services.AddSingleton<IRedisCacheService, RedisCacheService>();
+            services.AddScoped<ICustomerCachingService, CustomerCachingService>();
 
             return services;
         }

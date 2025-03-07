@@ -15,7 +15,7 @@ using UserApi.Infrastructure.Data;
 
 namespace UserApi.Infrastructure.Repository
 {
-    public class UserRepository(UserDbContext _context, IConfiguration _config) : IUser
+    public class UserRepository(UserDbContext _context, IConfiguration _config, ICustomerCachingService _cacheService) : IUser
     {
         public async Task<Response> GetAllAsync(int pageIndex = 1, int pageSize = 10)
         {
@@ -165,6 +165,9 @@ namespace UserApi.Infrastructure.Repository
                 await _context.Users.AddAsync(entity);
                 await _context.SaveChangesAsync();
 
+                var Users = await _context.Users.ToListAsync();
+                await _cacheService.UpdateCache(Users);
+
                 return new Response(true, 201, "Đăng ký tài khoản thành công")
                 {
                     Data = entity
@@ -214,6 +217,9 @@ namespace UserApi.Infrastructure.Repository
                 existingUser.IsActive = entity.IsActive;
 
                 await _context.SaveChangesAsync();
+
+                var Users = await _context.Users.ToListAsync();
+                await _cacheService.UpdateCache(Users);
 
                 var (responseData, _) = UserConversion.FromEntity(existingUser, null!);
 
@@ -278,6 +284,9 @@ namespace UserApi.Infrastructure.Repository
 
                 existingUser.IsActive = false;
                 await _context.SaveChangesAsync();
+
+                var Users = await _context.Users.ToListAsync();
+                await _cacheService.UpdateCache(Users);
 
                 var (responseData, _) = UserConversion.FromEntity(existingUser, null!);
 

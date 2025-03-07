@@ -11,6 +11,13 @@ namespace ServiceApi.Presentation.Controllers
     [ApiController]
     public class ServiceComboVariantController(IServiceComboVariant _serviceComboVariant) : ControllerBase
     {
+        [HttpGet]
+        public async Task<IActionResult> GetAllVariants()
+        {
+            var response = await _serviceComboVariant.GetAllAsync(1, 10);
+            return response.ToActionResult(this);
+        }
+
         [HttpPost]
         public async Task<IActionResult> CreateServiceComboVariant([FromBody] CreateUpdateServiceComboVariantDTO serviceComboVariant)
         {

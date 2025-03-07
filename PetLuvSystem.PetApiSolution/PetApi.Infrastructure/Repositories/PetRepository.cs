@@ -9,7 +9,7 @@ using System.Linq.Expressions;
 
 namespace PetApi.Infrastructure.Repositories
 {
-    public class PetRepository(PetDbContext _context) : IPet
+    public class PetRepository(PetDbContext _context, IPetCachingService _cacheService) : IPet
     {
         public async Task<Response> CreateAsync(Pet entity)
         {
@@ -43,6 +43,9 @@ namespace PetApi.Infrastructure.Repositories
                     await _context.SaveChangesAsync();
 
                     await transaction.CommitAsync();
+
+                    var pets = await _context.Pets.ToListAsync();
+                    await _cacheService.UpdateCache(pets);
 
                     var (responseData, _) = PetConversion.FromEntity(entity, null);
 
@@ -85,6 +88,9 @@ namespace PetApi.Infrastructure.Repositories
                 }
 
                 await _context.SaveChangesAsync();
+
+                var pets = await _context.Pets.ToListAsync();
+                await _cacheService.UpdateCache(pets);
 
                 return new Response(true, 200, message);
             }
@@ -305,6 +311,9 @@ namespace PetApi.Infrastructure.Repositories
                 existingPet.CustomerId = entity.CustomerId;
 
                 await _context.SaveChangesAsync();
+
+                var pets = await _context.Pets.ToListAsync();
+                await _cacheService.UpdateCache(pets);
 
                 var (responseData, _) = PetConversion.FromEntity(existingPet, null);
 

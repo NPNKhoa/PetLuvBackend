@@ -177,9 +177,27 @@ namespace ServiceApi.Infrastructure.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<Response> GetAllAsync(int pageIndex, int pageSize)
+        public async Task<Response> GetAllAsync(int pageIndex, int pageSize)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var entities = await context.WalkDogServiceVariants.ToListAsync();
+
+                if (entities is null || !entities.Any())
+                {
+                    return new Response(false, 404, "Không tìm thấy biển thể nào của walk dog trong database");
+                }
+
+                return new Response(true, 200, "Found")
+                {
+                    Data = entities
+                };
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
+                return new Response(false, 500, "Internal Server Error");
+            }
         }
 
         public Task<Response> GetByAsync(Expression<Func<WalkDogServiceVariant, bool>> predicate)

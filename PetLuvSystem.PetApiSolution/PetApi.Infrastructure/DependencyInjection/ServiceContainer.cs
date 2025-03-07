@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using PetApi.Application.Interfaces;
 using PetApi.Infrastructure.Data;
 using PetApi.Infrastructure.Repositories;
+using PetApi.Infrastructure.Services;
 using PetLuvSystem.SharedLibrary.DependencyInjections;
 using PetLuvSystem.SharedLibrary.Helpers.CloudinaryHelper;
 
@@ -24,6 +25,9 @@ namespace PetApi.Infrastructure.DependencyInjection
             services.AddScoped<IPetType, PetTypeRepository>();
             services.AddScoped<IPet, PetRepository>();
             services.AddScoped<ISellingPet, SellingPetRepository>();
+
+            services.AddSingleton<IRedisCacheService, RedisCacheService>();
+            services.AddScoped<IPetCachingService, PetCachingService>();
 
             return services;
         }

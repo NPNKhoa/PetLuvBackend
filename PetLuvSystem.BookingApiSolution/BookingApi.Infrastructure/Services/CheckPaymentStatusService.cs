@@ -134,48 +134,56 @@ namespace BookingApi.Infrastructure.Services
 
             LogException.LogInformation(requestUrl);
 
-            var client = _httpClientFactory.CreateClient();
-            var response = await client.GetAsync(requestUrl);
-
-            if (!response.IsSuccessStatusCode)
+            try
             {
-                LogException.LogError($"API call failed: {response.StatusCode}");
+                var client = _httpClientFactory.CreateClient();
+                var response = await client.GetAsync(requestUrl);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    LogException.LogError($"API call failed: {response.StatusCode}");
+                    return Guid.Empty;
+                }
+
+                var json = await response.Content.ReadAsStringAsync();
+                LogException.LogInformation("Checking PaymentStatus...");
+                LogException.LogInformation(json);
+
+                // Deserialize JSON response
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var jsonNode = JsonNode.Parse(json);
+                var paymentStatusJson = jsonNode?["data"]?.ToString();
+
+                if (string.IsNullOrEmpty(paymentStatusJson))
+                {
+                    LogException.LogError("Failed to extract 'data' field from API response.");
+                    return Guid.Empty;
+                }
+
+                var paymentStatuses = JsonSerializer.Deserialize<List<PaymentStatus>>(paymentStatusJson, options);
+
+                if (paymentStatuses == null || !paymentStatuses.Any())
+                {
+                    LogException.LogError("Failed to deserialize response data.");
+                    return Guid.Empty;
+                }
+
+                LogException.LogInformation("PaymentStatus list retrieved from API.");
+
+                var visibleStatuses = paymentStatuses
+                    .Where(p => p.IsVisible)
+                    .ToDictionary(p => p.PaymentStatusName, p => p.PaymentStatusId);
+
+                await _cacheService.SetCachedValueAsync(MappingCacheKey, JsonSerializer.Serialize(visibleStatuses), CacheExpiry);
+                LogException.LogInformation("PaymentStatus is updated from API and cached in Redis.");
+
+                return visibleStatuses.TryGetValue(paymentStatusName, out Guid statusId) ? statusId : Guid.Empty;
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
                 return Guid.Empty;
             }
-
-            var json = await response.Content.ReadAsStringAsync();
-            LogException.LogInformation("Checking PaymentStatus...");
-            LogException.LogInformation(json);
-
-            // Deserialize JSON response
-            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            var jsonNode = JsonNode.Parse(json);
-            var paymentStatusJson = jsonNode?["data"]?.ToString();
-
-            if (string.IsNullOrEmpty(paymentStatusJson))
-            {
-                LogException.LogError("Failed to extract 'data' field from API response.");
-                return Guid.Empty;
-            }
-
-            var paymentStatuses = JsonSerializer.Deserialize<List<PaymentStatus>>(paymentStatusJson, options);
-
-            if (paymentStatuses == null || !paymentStatuses.Any())
-            {
-                LogException.LogError("Failed to deserialize response data.");
-                return Guid.Empty;
-            }
-
-            LogException.LogInformation("PaymentStatus list retrieved from API.");
-
-            var visibleStatuses = paymentStatuses
-                .Where(p => p.IsVisible)
-                .ToDictionary(p => p.PaymentStatusName, p => p.PaymentStatusId);
-
-            await _cacheService.SetCachedValueAsync(MappingCacheKey, JsonSerializer.Serialize(visibleStatuses), CacheExpiry);
-            LogException.LogInformation("PaymentStatus is updated from API and cached in Redis.");
-
-            return visibleStatuses.TryGetValue(paymentStatusName, out Guid statusId) ? statusId : Guid.Empty;
         }
 
     }

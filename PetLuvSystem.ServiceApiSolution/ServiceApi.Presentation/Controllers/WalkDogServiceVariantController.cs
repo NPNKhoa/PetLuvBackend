@@ -10,6 +10,13 @@ namespace ServiceApi.Presentation.Controllers
     [ApiController]
     public class WalkDogServiceVariantController(IWalkDogServiceVariant _walkDogServiceVariant) : ControllerBase
     {
+        [HttpGet]
+        public async Task<IActionResult> GetAllVariants()
+        {
+            var response = await _walkDogServiceVariant.GetAllAsync(1, 10);
+            return response.ToActionResult(this);
+        }
+
         [HttpPost]
         public async Task<IActionResult> CreateWalkDogServiceVariant([FromBody] WalkDogServiceVariantDTO dto)
         {

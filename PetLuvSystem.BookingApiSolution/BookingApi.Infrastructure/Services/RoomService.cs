@@ -23,17 +23,26 @@ namespace BookingApi.Infrastructure.Services
 
         public async Task<RoomDTO?> GetRoomById(Guid roomId)
         {
-            // Check cache
+            // Kiểm tra cache
             var cachedData = await _cacheService.GetCachedValueAsync(CacheKey);
 
             if (!string.IsNullOrEmpty(cachedData))
             {
-                LogException.LogInformation($"Room {roomId} returned from Redis cache.");
+                LogException.LogInformation($"Fetching room {roomId} from cache.");
 
-                return JsonSerializer.Deserialize<RoomDTO>(cachedData);
+                // Deserialize danh sách các phòng
+                var cachedRooms = JsonSerializer.Deserialize<List<RoomDTO>>(cachedData);
+                if (cachedRooms != null)
+                {
+                    var room = cachedRooms.FirstOrDefault(r => r.RoomId == roomId);
+                    if (room != null)
+                    {
+                        return room;
+                    }
+                }
             }
 
-            // Cache Missed
+            // Nếu không tìm thấy trong cache, gọi API để lấy toàn bộ danh sách phòng
             var roomServiceUrl = _configuration["ExternalServices:RoomServiceUrl"];
             if (string.IsNullOrEmpty(roomServiceUrl))
             {
@@ -42,7 +51,7 @@ namespace BookingApi.Infrastructure.Services
             }
 
             var client = _httpClientFactory.CreateClient();
-            var response = await client.GetAsync($"{roomServiceUrl}{roomId}");
+            var response = await client.GetAsync(roomServiceUrl); // Gọi API lấy toàn bộ danh sách phòng
 
             if (!response.IsSuccessStatusCode)
             {
@@ -53,20 +62,22 @@ namespace BookingApi.Infrastructure.Services
             var json = await response.Content.ReadAsStringAsync();
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
-            LogException.LogInformation("Checking Room...");
+            LogException.LogInformation("Fetching all rooms from Room service API...");
             LogException.LogInformation(json);
 
-            var roomDto = JsonSerializer.Deserialize<RoomDTO>(json, options);
-            if (roomDto == null)
+            var rooms = JsonSerializer.Deserialize<List<RoomDTO>>(json, options);
+            if (rooms == null || !rooms.Any())
             {
-                LogException.LogError("Failed to deserialize room data.");
+                LogException.LogError("Failed to deserialize room data or empty list.");
                 return null;
             }
 
-            await _cacheService.SetCachedValueAsync(CacheKey, JsonSerializer.Serialize(roomDto), CacheExpiry);
-            LogException.LogInformation($"Room {roomId} fetched from Room service API and cached in Redis.");
+            // Lưu toàn bộ danh sách phòng vào cache
+            await _cacheService.SetCachedValueAsync(CacheKey, JsonSerializer.Serialize(rooms), CacheExpiry);
+            LogException.LogInformation("Room list cached in Redis.");
 
-            return roomDto;
+            // Tìm phòng theo roomId trong danh sách vừa lấy từ API
+            return rooms.FirstOrDefault(r => r.RoomId == roomId);
         }
 
     }

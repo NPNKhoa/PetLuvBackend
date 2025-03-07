@@ -12,9 +12,9 @@ namespace BookingApi.Infrastructure.Services
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IRedisCacheService _cacheService;
         private readonly IConfiguration _configuration;
-        private const string CacheKey = "getserviceById";
-        private const string VariantCacheKey = "getVariantByKey";
-        private const string ComboCacheKey = "getserviceById";
+        private const string CacheKey = "ServiceService";
+        private const string WDCacheKey = "walkDogService";
+        private const string ComboServiceCacheKey = "ComboService";
         private readonly TimeSpan CacheExpiry = TimeSpan.FromHours(24);
 
         public ServiceService(IHttpClientFactory httpClientFactory, IRedisCacheService cacheService, IConfiguration configuration)
@@ -23,108 +23,45 @@ namespace BookingApi.Infrastructure.Services
             _cacheService = cacheService;
             _configuration = configuration;
         }
-        public async Task<ServiceComboVariant?> GetServiceComboVariantById(Guid serviceId)
+
+        public async Task<ServiceVariantDTO?> GetServiceVariantByKey(Guid serviceId, Guid breedId, string petWeightRange)
         {
-            // Check cache
-            var cachedData = await _cacheService.GetCachedValueAsync(ComboCacheKey);
-
-            if (!string.IsNullOrEmpty(cachedData))
-            {
-                LogException.LogInformation($"service {serviceId} returned from Redis cache.");
-
-                return JsonSerializer.Deserialize<ServiceComboVariant>(cachedData);
-            }
-
-            // Cache Missed
-            var serviceServiceUrl = _configuration["ExternalServices:ServiceServiceUrl"];
-            if (string.IsNullOrEmpty(serviceServiceUrl))
-            {
-                LogException.LogError("service Service URL is not configured.");
-                return null;
-            }
-
-            var client = _httpClientFactory.CreateClient();
-            var response = await client.GetAsync($"{serviceServiceUrl}service-combo/{serviceId}");
-
-            if (!response.IsSuccessStatusCode)
-            {
-                LogException.LogError($"Failed to fetch service data. Status code: {response.StatusCode}");
-                return null;
-            }
-
-            var json = await response.Content.ReadAsStringAsync();
-            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            LogException.LogInformation(json);
-
-            var serviceDto = JsonSerializer.Deserialize<ServiceComboVariant>(json, options);
-            if (serviceDto == null)
-            {
-                LogException.LogError("Failed to deserialize service data.");
-                return null;
-            }
-
-            await _cacheService.SetCachedValueAsync(ComboCacheKey, JsonSerializer.Serialize(serviceDto), CacheExpiry);
-            LogException.LogInformation($"service {serviceId} fetched from service service API and cached in Redis.");
-
-            return serviceDto;
-        }
-
-        public async Task<ServiceVariantDTO?> GetServiceVariantById(Guid serviceId)
-        {
-            // Check cache
             var cachedData = await _cacheService.GetCachedValueAsync(CacheKey);
 
             if (!string.IsNullOrEmpty(cachedData))
             {
-                LogException.LogInformation($"service {serviceId} returned from Redis cache.");
+                LogException.LogInformation($"Fetching service variant ({serviceId}, {breedId}, {petWeightRange}) from cache.");
 
-                return JsonSerializer.Deserialize<ServiceVariantDTO>(cachedData);
+                var cachedVariants = JsonSerializer.Deserialize<List<ServiceVariantDTO>>(cachedData);
+                if (cachedVariants != null)
+                {
+                    var variant = cachedVariants.FirstOrDefault(v =>
+                        v.ServiceId == serviceId &&
+                        v.BreedId == breedId &&
+                        v.PetWeightRange.Trim().ToLower().Equals(petWeightRange.Trim().ToLower()));
+
+                    if (variant != null)
+                    {
+                        return variant;
+                    }
+                }
             }
 
-            // Cache Missed
-            var serviceServiceUrl = _configuration["ExternalServices:ServiceServiceUrl"];
-            if (string.IsNullOrEmpty(serviceServiceUrl))
+            var WDcachedData = await _cacheService.GetCachedValueAsync(WDCacheKey);
+            if (!string.IsNullOrEmpty(WDcachedData))
             {
-                LogException.LogError("service Service URL is not configured.");
-                return null;
-            }
+                LogException.LogInformation($"Fetching walk dog service {serviceId} from cache.");
 
-            var client = _httpClientFactory.CreateClient();
-            var response = await client.GetAsync($"{serviceServiceUrl}services/{serviceId}");
+                var wdCache = JsonSerializer.Deserialize<List<ServiceVariantDTO>>(WDcachedData);
 
-            if (!response.IsSuccessStatusCode)
-            {
-                LogException.LogError($"Failed to fetch service data. Status code: {response.StatusCode}");
-                return null;
-            }
+                if (wdCache != null)
+                {
+                    var walkDog = wdCache.FirstOrDefault(c =>
+                        c.ServiceId == serviceId && c.BreedId == breedId
+                    );
 
-            var json = await response.Content.ReadAsStringAsync();
-            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-
-            LogException.LogInformation("Checking Service...");
-            LogException.LogInformation(json);
-
-            var serviceDto = JsonSerializer.Deserialize<ServiceVariantDTO>(json, options);
-            if (serviceDto == null)
-            {
-                LogException.LogError("Failed to deserialize service data.");
-                return null;
-            }
-
-            await _cacheService.SetCachedValueAsync(CacheKey, JsonSerializer.Serialize(serviceDto), CacheExpiry);
-            LogException.LogInformation($"service {serviceId} fetched from service service API and cached in Redis.");
-
-            return serviceDto;
-        }
-
-        public async Task<ServiceVariantDTO?> GetServiceVariantByKey(Guid serviceId, Guid breedId, string petWeightRange)
-        {
-            var cachedData = await _cacheService.GetCachedValueAsync(VariantCacheKey);
-
-            if (!string.IsNullOrEmpty(cachedData))
-            {
-                LogException.LogInformation($"Service Variant ({serviceId}, {breedId}, {petWeightRange}) returned from Redis cache.");
-                return JsonSerializer.Deserialize<ServiceVariantDTO>(cachedData);
+                    return walkDog;
+                }
             }
 
             var serviceServiceUrl = _configuration["ExternalServices:ServiceServiceUrl"];
@@ -134,44 +71,122 @@ namespace BookingApi.Infrastructure.Services
                 return null;
             }
 
-            var apiUrl = $"{serviceServiceUrl}service-variants/{serviceId}/{breedId}/{Uri.EscapeDataString(petWeightRange)}";
+            var apiUrl = $"{serviceServiceUrl}service-variants";
+
             var client = _httpClientFactory.CreateClient();
             var response = await client.GetAsync(apiUrl);
-            LogException.LogError($"API URL: {apiUrl}");
+
+            LogException.LogInformation($"API URL: {apiUrl}");
 
             if (!response.IsSuccessStatusCode)
             {
-                LogException.LogError($"Failed to fetch service variant data. Status code: {response.StatusCode} - {response.Content}");
+                LogException.LogError($"Failed to fetch service variants. Status code: {response.StatusCode}");
                 return null;
             }
 
             var json = await response.Content.ReadAsStringAsync();
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
-            LogException.LogInformation("Checking Service Variant...");
+            LogException.LogInformation("Fetching all service variants from API...");
             LogException.LogInformation(json);
 
             var jsonNode = JsonNode.Parse(json);
-            var serviceVariantJson = jsonNode?["data"]?["data"]?.ToJsonString();
+            var serviceVariantsJson = jsonNode?["data"]?.ToJsonString();
 
-            if (string.IsNullOrEmpty(serviceVariantJson))
+            if (string.IsNullOrEmpty(serviceVariantsJson))
             {
                 LogException.LogError("Failed to extract 'data' field from API response.");
                 return null;
             }
 
-            var serviceVariantDto = JsonSerializer.Deserialize<ServiceVariantDTO>(serviceVariantJson, options);
-            if (serviceVariantDto == null)
+            var serviceVariants = JsonSerializer.Deserialize<List<ServiceVariantDTO>>(serviceVariantsJson, options);
+            if (serviceVariants == null || !serviceVariants.Any())
             {
-                LogException.LogError("Failed to deserialize service variant data.");
+                LogException.LogError("Failed to deserialize service variant data or empty list.");
                 return null;
             }
 
-            await _cacheService.SetCachedValueAsync(VariantCacheKey, JsonSerializer.Serialize(serviceVariantDto), CacheExpiry);
-            LogException.LogInformation($"Service Variant ({serviceId}, {breedId}, {petWeightRange}) fetched from service API and cached in Redis.");
+            await _cacheService.SetCachedValueAsync(CacheKey, JsonSerializer.Serialize(serviceVariants), CacheExpiry);
+            LogException.LogInformation("Service variant list cached in Redis.");
 
-            return serviceVariantDto;
+            return serviceVariants.FirstOrDefault(v =>
+                v.ServiceId == serviceId &&
+                v.BreedId == breedId &&
+                v.PetWeightRange == petWeightRange
+            );
         }
 
+
+        public async Task<ServiceComboVariant?> GetServiceComboVariantByKey(Guid serviceId, Guid BreedId, string PetWeightRange)
+        {
+            // Kiểm tra cache
+            var cachedData = await _cacheService.GetCachedValueAsync(ComboServiceCacheKey);
+
+            if (!string.IsNullOrEmpty(cachedData))
+            {
+                LogException.LogInformation($"Fetching service combo {serviceId} from cache.");
+
+                var cachedCombos = JsonSerializer.Deserialize<List<ServiceComboVariant>>(cachedData);
+
+                if (cachedCombos != null)
+                {
+                    var combo = cachedCombos.FirstOrDefault(c =>
+                        c.ServiceComboId == serviceId
+                        && c.BreedId == BreedId
+                        && c.WeightRange.Trim().ToLower().Equals(PetWeightRange.ToLower().Trim()));
+
+                    return combo;
+                }
+            }
+
+            // Cache khong co data
+            var serviceServiceUrl = _configuration["ExternalServices:ServiceServiceUrl"];
+
+            if (string.IsNullOrEmpty(serviceServiceUrl))
+            {
+                LogException.LogError("Service URL is not configured.");
+                return null;
+            }
+
+            var apiUrl = $"{serviceServiceUrl}service-combos";
+
+            var client = _httpClientFactory.CreateClient();
+            var response = await client.GetAsync(apiUrl);
+
+            LogException.LogInformation($"API URL: {apiUrl}");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                LogException.LogError($"Failed to fetch service combos. Status code: {response.StatusCode}");
+                return null;
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+
+            LogException.LogInformation("Fetching all service combos from API...");
+            LogException.LogInformation(json);
+
+            var jsonNode = JsonNode.Parse(json);
+            var serviceCombosJson = jsonNode?["data"]?.ToJsonString();
+
+            if (string.IsNullOrEmpty(serviceCombosJson))
+            {
+                LogException.LogError("Failed to extract 'data' field from API response.");
+                return null;
+            }
+
+            var serviceCombos = JsonSerializer.Deserialize<List<ServiceComboVariant>>(serviceCombosJson, options);
+            if (serviceCombos == null || !serviceCombos.Any())
+            {
+                LogException.LogError("Failed to deserialize service combo data or empty list.");
+                return null;
+            }
+
+            await _cacheService.SetCachedValueAsync(ComboServiceCacheKey, JsonSerializer.Serialize(serviceCombos), CacheExpiry);
+            LogException.LogInformation("Service combo list cached in Redis.");
+
+            return serviceCombos.FirstOrDefault(c => c.ServiceComboId == serviceId);
+        }
     }
 }

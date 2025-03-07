@@ -31,6 +31,8 @@ namespace ServiceApi.Infrastructure.DependencyInjection
             services.AddSingleton<IRedisCacheService, RedisCacheService>();
 
             services.AddScoped<IBreedMappingService, BreedMappingService>();
+            services.AddScoped<IServiceVariantCachingService, ServiceVariantCachingService>();
+            services.AddScoped<IServiceComboCachingService, ServiceComboCachingService>();
 
             services.AddQuartz(q =>
             {

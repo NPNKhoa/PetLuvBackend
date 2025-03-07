@@ -139,7 +139,7 @@ namespace BookingApi.Presentation.Controllers
                     var serviceComboBookingDetails = new List<ServiceComboBookingDetail>();
                     foreach (var serviceId in dto.ServiceComboIds)
                     {
-                        var service = await _serviceService.GetServiceComboVariantById(serviceId);
+                        var service = await _serviceService.GetServiceComboVariantByKey(serviceId, dto.BreedId, dto.PetWeightRange);
                         int totalTime = 0;
                         if (service is not null)
                         {

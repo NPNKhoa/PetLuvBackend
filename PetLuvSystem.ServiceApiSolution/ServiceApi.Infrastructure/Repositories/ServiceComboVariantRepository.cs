@@ -9,7 +9,7 @@ using System.Linq.Expressions;
 
 namespace ServiceApi.Infrastructure.Repositories
 {
-    public class ServiceComboVariantRepository(ServiceDbContext context) : IServiceComboVariant
+    public class ServiceComboVariantRepository(ServiceDbContext context, IServiceComboCachingService _cacheService) : IServiceComboVariant
     {
         public async Task<Response> CreateAsync(ServiceComboVariant entity)
         {
@@ -24,6 +24,9 @@ namespace ServiceApi.Infrastructure.Repositories
 
                 await context.AddAsync(entity);
                 await context.SaveChangesAsync();
+
+                var entities = await context.ServiceComboVariants.Where(x => x.IsVisible == true).ToListAsync();
+                await _cacheService.Updatecache(entities);
 
                 var (responseData, _) = ServiceComboVariantConversion.FromEntity(entity, null);
 
@@ -56,7 +59,11 @@ namespace ServiceApi.Infrastructure.Repositories
                 if (serviceComboVariant.IsVisible)
                 {
                     serviceComboVariant.IsVisible = false;
+
+                    var combos = await context.ServiceComboVariants.Where(x => x.IsVisible == true).ToListAsync();
                     await context.SaveChangesAsync();
+
+                    await _cacheService.Updatecache(combos);
 
                     return new Response(true, 200, "Service combo variant was made hidden successfully")
                     {
@@ -66,6 +73,9 @@ namespace ServiceApi.Infrastructure.Repositories
 
                 context.Remove(serviceComboVariant);
                 await context.SaveChangesAsync();
+
+                var comboss = await context.ServiceComboVariants.Where(x => x.IsVisible == true).ToListAsync();
+                await _cacheService.Updatecache(comboss);
 
                 return new Response(true, 200, "Service combo variant deleted")
                 {
@@ -161,6 +171,9 @@ namespace ServiceApi.Infrastructure.Repositories
                 context.Update(serviceComboVariant);
                 await context.SaveChangesAsync();
 
+                var entities = await context.ServiceComboVariants.Where(x => x.IsVisible == true).ToListAsync();
+                await _cacheService.Updatecache(entities);
+
                 var (responseData, _) = ServiceComboVariantConversion.FromEntity(serviceComboVariant, null);
 
                 return new Response(true, 200, "Service combo variant updated")
@@ -185,9 +198,27 @@ namespace ServiceApi.Infrastructure.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<Response> GetAllAsync(int pageIndex, int pageSize)
+        public async Task<Response> GetAllAsync(int pageIndex, int pageSize)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var entities = await context.ServiceComboVariants.ToListAsync();
+
+                if (!entities.Any())
+                {
+                    return new Response(false, 404, "Không tìm thấy biến thể của combo");
+                }
+
+                return new Response(true, 200, "Found")
+                {
+                    Data = entities
+                };
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
+                return new Response(false, 500, "Internal Server Error");
+            }
         }
 
         public Task<Response> GetByAsync(Expression<Func<ServiceComboVariant, bool>> predicate)

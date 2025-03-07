@@ -48,51 +48,58 @@ namespace BookingApi.Infrastructure.Services
                 return false;
             }
 
-            var client = _httpClientFactory.CreateClient();
-            var response = await client.GetAsync(apiUrl);
-
-            if (!response.IsSuccessStatusCode)
+            try
             {
-                LogException.LogError($"API call failed with status code: {response.StatusCode}");
+                var client = _httpClientFactory.CreateClient();
+                var response = await client.GetAsync(apiUrl);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    LogException.LogError($"API call failed with status code: {response.StatusCode}");
+                    return false;
+                }
+
+                var json = await response.Content.ReadAsStringAsync();
+
+                var jsonNode = JsonNode.Parse(json);
+                if (jsonNode == null)
+                {
+                    LogException.LogError("Failed to parse API response.");
+                    return false;
+                }
+
+                var userDataJson = jsonNode?["data"]?["data"]?.ToJsonString();
+                if (string.IsNullOrEmpty(userDataJson))
+                {
+                    LogException.LogError("Failed to extract user data from API response.");
+                    return false;
+                }
+
+                LogException.LogInformation("Checking Customer...");
+                LogException.LogInformation(json);
+
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var users = JsonSerializer.Deserialize<List<UserDTO>>(userDataJson, options);
+
+                if (users == null)
+                {
+                    LogException.LogError("Failed to deserialize response data.");
+                    return false;
+                }
+
+                var customerIds = users.Where(u => u.IsActive).Select(u => u.UserId).ToHashSet();
+
+                await _cacheService.SetCachedValueAsync(CacheKey, JsonSerializer.Serialize(customerIds), CacheExpiry);
+
+                LogException.LogInformation("Customer list is updated from API and cached in Redis.");
+
+                return customerIds.Contains(customerId);
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
                 return false;
             }
-
-            var json = await response.Content.ReadAsStringAsync();
-
-            var jsonNode = JsonNode.Parse(json);
-            if (jsonNode == null)
-            {
-                LogException.LogError("Failed to parse API response.");
-                return false;
-            }
-
-            var userDataJson = jsonNode?["data"]?["data"]?.ToJsonString();
-            if (string.IsNullOrEmpty(userDataJson))
-            {
-                LogException.LogError("Failed to extract user data from API response.");
-                return false;
-            }
-
-            LogException.LogInformation("Checking Customer...");
-            LogException.LogInformation(json);
-
-            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            var users = JsonSerializer.Deserialize<List<UserDTO>>(userDataJson, options);
-
-            if (users == null)
-            {
-                LogException.LogError("Failed to deserialize response data.");
-                return false;
-            }
-
-            var customerIds = users.Where(u => u.IsActive).Select(u => u.UserId).ToHashSet();
-
-            await _cacheService.SetCachedValueAsync(CacheKey, JsonSerializer.Serialize(customerIds), CacheExpiry);
-
-            LogException.LogInformation("Customer list is updated from API and cached in Redis.");
-
-            return customerIds.Contains(customerId);
         }
-
     }
 }

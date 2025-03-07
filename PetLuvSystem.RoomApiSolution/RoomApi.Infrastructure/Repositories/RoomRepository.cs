@@ -9,7 +9,7 @@ using System.Linq.Expressions;
 
 namespace RoomApi.Infrastructure.Repositories
 {
-    public class RoomRepository(RoomDbContext _context) : IRoom
+    public class RoomRepository(RoomDbContext _context, IRoomCachingService _cacheService) : IRoom
     {
         public async Task<Response> CreateAsync(Room entity)
         {
@@ -26,6 +26,9 @@ namespace RoomApi.Infrastructure.Repositories
                 await _context.SaveChangesAsync();
 
                 await _context.Entry(entity).Reference(r => r.RoomType).LoadAsync();
+
+                var rooms = await _context.Rooms.Where(r => r.IsVisible == true).ToListAsync();
+                await _cacheService.UpdateCacheAsync(rooms);
 
                 var (responseData, _) = RoomConversion.FromEntity(entity, null);
 
@@ -70,6 +73,9 @@ namespace RoomApi.Infrastructure.Repositories
                     room.IsVisible = false;
                     await _context.SaveChangesAsync();
 
+                    var rooms = await _context.Rooms.Where(r => r.IsVisible == true).ToListAsync();
+                    await _cacheService.UpdateCacheAsync(rooms);
+
                     return new Response(true, 200, "Room deleted successfully")
                     {
                         Data = new { data = responseData }
@@ -78,6 +84,9 @@ namespace RoomApi.Infrastructure.Repositories
 
                 _context.Rooms.Remove(room);
                 await _context.SaveChangesAsync();
+
+                var roomss = await _context.Rooms.Where(r => r.IsVisible == true).ToListAsync();
+                await _cacheService.UpdateCacheAsync(roomss);
 
                 return new Response(true, 200, "Room deleted permenantly successfully")
                 {
@@ -207,6 +216,9 @@ namespace RoomApi.Infrastructure.Repositories
                 await _context.SaveChangesAsync();
 
                 var (responseData, _) = RoomConversion.FromEntity(room, null);
+
+                var rooms = await _context.Rooms.Where(r => r.IsVisible == true).ToListAsync();
+                await _cacheService.UpdateCacheAsync(rooms);
 
                 return new Response(true, 200, "Room updated successfully")
                 {

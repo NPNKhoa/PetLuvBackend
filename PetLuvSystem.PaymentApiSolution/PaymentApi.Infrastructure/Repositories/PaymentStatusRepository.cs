@@ -9,7 +9,7 @@ using System.Linq.Expressions;
 
 namespace PaymentApi.Infrastructure.Repositories
 {
-    public class PaymentStatusRepository(PaymentDbContext _context) : IPaymentStatus
+    public class PaymentStatusRepository(PaymentDbContext _context, IPaymentCachingService _paymentCachingService) : IPaymentStatus
     {
         public async Task<Response> CreateAsync(PaymentStatus entity)
         {
@@ -25,6 +25,8 @@ namespace PaymentApi.Infrastructure.Repositories
 
                 await _context.PaymentStatus.AddAsync(entity);
                 await _context.SaveChangesAsync();
+
+                await UpdateCache();
 
                 var (response, _) = PaymentStatusConversion.FromEntity(entity, null);
 
@@ -66,6 +68,8 @@ namespace PaymentApi.Infrastructure.Repositories
 
                 _context.PaymentStatus.Remove(existingEntity);
                 await _context.SaveChangesAsync();
+
+                await UpdateCache();
 
                 return new Response(true, 200, "Xóa trạng thái thanh toán thành công");
             }
@@ -179,6 +183,8 @@ namespace PaymentApi.Infrastructure.Repositories
 
                 await _context.SaveChangesAsync();
 
+                await UpdateCache();
+
                 var (response, _) = PaymentStatusConversion.FromEntity(existingEntity, null);
 
                 return new Response(true, 200, "Cập nhật trạng thái thanh toán thành công")
@@ -242,6 +248,12 @@ namespace PaymentApi.Infrastructure.Repositories
         public async Task<PaymentStatus> FindByName(string paymentStatusName)
         {
             return await _context.PaymentStatus.FirstOrDefaultAsync(x => x.PaymentStatusName.ToLower().Trim().Equals(paymentStatusName.Trim().ToLower())) ?? null!;
+        }
+
+        private async Task UpdateCache()
+        {
+            var allStatuses = await _context.PaymentStatus.Where(p => p.IsVisible).ToListAsync();
+            await _paymentCachingService.UpdateCacheAsync(allStatuses);
         }
     }
 }

@@ -5,6 +5,7 @@ using PetLuvSystem.SharedLibrary.DependencyInjections;
 using RoomApi.Application.Interfaces;
 using RoomApi.Infrastructure.Data;
 using RoomApi.Infrastructure.Repositories;
+using RoomApi.Infrastructure.Services;
 
 namespace RoomApi.Infrastructure.DependencyInjection
 {
@@ -18,6 +19,9 @@ namespace RoomApi.Infrastructure.DependencyInjection
             services.AddScoped<IRoom, RoomRepository>();
             services.AddScoped<IRoomAccessory, RoomAccessoryRepository>();
             services.AddScoped<IRoomType, RoomTypeRepository>();
+
+            services.AddSingleton<IRedisCachingService, RedisCachingService>();
+            services.AddScoped<IRoomCachingService, RoomCachingService>();
 
             return services;
         }

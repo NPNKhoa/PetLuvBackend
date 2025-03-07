@@ -6,6 +6,7 @@ using PaymentApi.Application.Consumers;
 using PaymentApi.Application.Interfaces;
 using PaymentApi.Infrastructure.Data;
 using PaymentApi.Infrastructure.Repositories;
+using PaymentApi.Infrastructure.Services;
 using PetLuvSystem.SharedLibrary.DependencyInjections;
 using PetLuvSystem.SharedLibrary.Helpers.CloudinaryHelper;
 using VNPAY.NET;
@@ -57,6 +58,8 @@ namespace PaymentApi.Infrastructure.DependencyInjection
                     cfg.ConfigureEndpoints(context);
                 });
             });
+            services.AddSingleton<IRedisCacheService, RedisCacheService>();
+            services.AddScoped<IPaymentCachingService, PaymentCachingService>();
 
             return services;
         }

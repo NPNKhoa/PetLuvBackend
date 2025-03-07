@@ -11,6 +11,13 @@ namespace ServiceApi.Presentation.Controllers
     [ApiController]
     public class ServiceVariantController(IServiceVariant _serviceVariant) : ControllerBase
     {
+        [HttpGet]
+        public async Task<IActionResult> GetAllVariants()
+        {
+            var response = await _serviceVariant.GetAllAsync(1, 10);
+            return response.ToActionResult(this);
+        }
+
         [HttpGet("{serviceId}/{breedId}/{petWeightRange}")]
         public async Task<IActionResult> GetServiceVariantById([FromRoute] Guid serviceId, [FromRoute] Guid breedId, [FromRoute] string petWeightRange)
         {

@@ -48,50 +48,58 @@ namespace BookingApi.Infrastructure.Services
                 return false;
             }
 
-            var client = _httpClientFactory.CreateClient();
-            var response = await client.GetAsync(apiUrl);
-
-            if (!response.IsSuccessStatusCode)
+            try
             {
-                LogException.LogError($"API call failed with status code: {response.StatusCode}");
+                var client = _httpClientFactory.CreateClient();
+                var response = await client.GetAsync(apiUrl);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    LogException.LogError($"API call failed with status code: {response.StatusCode}");
+                    return false;
+                }
+
+                var json = await response.Content.ReadAsStringAsync();
+
+                var jsonNode = JsonNode.Parse(json);
+                if (jsonNode == null)
+                {
+                    LogException.LogError("Failed to parse API response.");
+                    return false;
+                }
+
+                var petDataJson = jsonNode?["data"]?["data"]?.ToJsonString();
+                if (string.IsNullOrEmpty(petDataJson))
+                {
+                    LogException.LogError("Failed to extract pet data from API response.");
+                    return false;
+                }
+
+                LogException.LogInformation("Checking Pet...");
+                LogException.LogInformation(json);
+
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var pets = JsonSerializer.Deserialize<List<PetDTO>>(petDataJson, options);
+
+                if (pets == null)
+                {
+                    LogException.LogError("Failed to deserialize response data.");
+                    return false;
+                }
+
+                var petIds = pets.Where(p => p.IsVisible).Select(p => p.PetId).ToHashSet();
+
+                await _cacheService.SetCachedValueAsync(CacheKey, JsonSerializer.Serialize(petIds), CacheExpiry);
+
+                LogException.LogInformation("Pet list is updated from API and cached in Redis.");
+
+                return petIds.Contains(petId);
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
                 return false;
             }
-
-            var json = await response.Content.ReadAsStringAsync();
-
-            var jsonNode = JsonNode.Parse(json);
-            if (jsonNode == null)
-            {
-                LogException.LogError("Failed to parse API response.");
-                return false;
-            }
-
-            var petDataJson = jsonNode?["data"]?["data"]?.ToJsonString();
-            if (string.IsNullOrEmpty(petDataJson))
-            {
-                LogException.LogError("Failed to extract pet data from API response.");
-                return false;
-            }
-
-            LogException.LogInformation("Checking Pet...");
-            LogException.LogInformation(json);
-
-            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            var pets = JsonSerializer.Deserialize<List<PetDTO>>(petDataJson, options);
-
-            if (pets == null)
-            {
-                LogException.LogError("Failed to deserialize response data.");
-                return false;
-            }
-
-            var petIds = pets.Where(p => p.IsVisible).Select(p => p.PetId).ToHashSet();
-
-            await _cacheService.SetCachedValueAsync(CacheKey, JsonSerializer.Serialize(petIds), CacheExpiry);
-
-            LogException.LogInformation("Pet list is updated from API and cached in Redis.");
-
-            return petIds.Contains(petId);
         }
 
     }
