@@ -8,7 +8,7 @@ using System.Linq.Expressions;
 
 namespace BookingApi.Infrastructure.Repositories
 {
-    public class BookingRepository(BookingDbContext _context) : IBooking
+    public class BookingRepository(BookingDbContext _context, ICheckPaymentStatusService _paymentStatusService) : IBooking
     {
         public async Task<PetLuvSystem.SharedLibrary.Responses.Response> CreateAsync(Booking entity)
         {
@@ -36,6 +36,8 @@ namespace BookingApi.Infrastructure.Repositories
             try
             {
                 var entities = await _context.Bookings
+                    .Include(b => b.BookingStatus)
+                    .Include(b => b.BookingType)
                     .OrderByDescending(b => b.BookingStartTime)
                     .Skip((pageIndex - 1) * pageSize)
                     .Take(pageSize)
@@ -46,7 +48,9 @@ namespace BookingApi.Infrastructure.Repositories
                     return new PetLuvSystem.SharedLibrary.Responses.Response(false, 404, "Không tìm thấy booking nào");
                 }
 
-                var (_, response) = BookingConversion.FromEntity(null, entities);
+                LogException.LogInformation("Converting...");
+
+                var (_, response) = await BookingConversion.FromEntity(null, entities, _paymentStatusService);
 
                 return new PetLuvSystem.SharedLibrary.Responses.Response(true, 200, "OK")
                 {
@@ -79,7 +83,9 @@ namespace BookingApi.Infrastructure.Repositories
                     return new PetLuvSystem.SharedLibrary.Responses.Response(false, 404, "Không tìm thấy booking này");
                 }
 
-                var (response, _) = BookingConversion.FromEntity(entity, null);
+                string paymentStatusName = await _paymentStatusService.GetPaymentStatusNameById(entity.PaymentStatusId);
+
+                var (response, _) = await BookingConversion.FromEntity(entity, null, _paymentStatusService);
 
                 return new PetLuvSystem.SharedLibrary.Responses.Response(true, 200, "Found")
                 {
@@ -104,7 +110,7 @@ namespace BookingApi.Infrastructure.Repositories
                     return new PetLuvSystem.SharedLibrary.Responses.Response(false, 404, "Không tìm thấy booking này");
                 }
 
-                var (response, _) = BookingConversion.FromEntity(entity, null);
+                var (response, _) = await BookingConversion.FromEntity(entity, null, _paymentStatusService);
 
                 return new PetLuvSystem.SharedLibrary.Responses.Response(true, 200, "Found")
                 {
@@ -122,30 +128,12 @@ namespace BookingApi.Infrastructure.Repositories
         {
             try
             {
-                if (
-                    entity.BookingStartTime > DateTime.UtcNow
-                    || entity.BookingEndTime > DateTime.UtcNow
-                    || entity.BookingStartTime < entity.BookingEndTime
-                )
+                if (entity.BookingStartTime >= entity.BookingEndTime)
                 {
                     return new PetLuvSystem.SharedLibrary.Responses.Response(false, 400, "Thời gian lịch hẹn không hợp lệ");
                 }
 
-                var existingEntity = await _context.Bookings.FirstOrDefaultAsync(b =>
-                    b.CustomerId == entity.CustomerId
-                    && (
-                        b.RoomBookingItem != null && entity.RoomBookingItem != null
-                        && (b.RoomBookingItem.RoomId == entity.RoomBookingItem.RoomId)
-                    )
-                    && (
-                        b.ServiceBookingDetails != null
-                        && b.ServiceComboBookingDetails != null
-                            && b.ServiceBookingDetails.Count > 0
-                            && b.ServiceComboBookingDetails.Count > 0
-                    )
-                    && b.PetId == entity.PetId
-                    && b.BookingStartTime == entity.BookingStartTime
-                    && b.BookingEndTime == entity.BookingEndTime);
+                var existingEntity = await _context.Bookings.FirstOrDefaultAsync(b => b.BookingId == id);
 
                 if (existingEntity is null)
                 {
@@ -160,19 +148,14 @@ namespace BookingApi.Infrastructure.Repositories
                     existingEntity.BookingEndTime != entity.BookingEndTime ?
                     entity.BookingEndTime : existingEntity.BookingEndTime;
 
-                existingEntity.BookingNote =
-                    existingEntity.BookingNote is not null
-                    && entity.BookingNote is not null
-                    && !existingEntity.BookingNote.ToLower().Equals(entity.BookingNote.Trim().ToLower()) ?
-                    entity.BookingNote : existingEntity.BookingNote;
+                existingEntity.RoomRentalTime =
+                    existingEntity.RoomRentalTime != entity.RoomRentalTime ?
+                    entity.RoomRentalTime : existingEntity.RoomRentalTime;
 
                 existingEntity.TotalEstimateTime =
-                    existingEntity.TotalEstimateTime != entity.TotalEstimateTime ?
-                    entity.TotalEstimateTime : existingEntity.TotalEstimateTime;
-
-                existingEntity.BookingTypeId =
-                    existingEntity.BookingTypeId != entity.BookingTypeId ?
-                    entity.BookingTypeId : existingEntity.BookingTypeId;
+                    existingEntity.TotalEstimateTime != entity.TotalEstimateTime
+                    || entity.TotalEstimateTime is not null
+                    ? entity.TotalEstimateTime : existingEntity.TotalEstimateTime;
 
                 existingEntity.BookingStatusId =
                     existingEntity.BookingStatusId != entity.BookingStatusId ?
@@ -182,17 +165,12 @@ namespace BookingApi.Infrastructure.Repositories
                     existingEntity.PaymentStatusId != entity.PaymentStatusId ?
                     entity.PaymentStatusId : existingEntity.PaymentStatusId;
 
-                existingEntity.CustomerId =
-                    existingEntity.CustomerId != entity.CustomerId ?
-                    entity.CustomerId : existingEntity.CustomerId;
 
-                existingEntity.PetId =
-                    existingEntity.PetId != entity.PetId ?
-                    entity.PetId : existingEntity.PetId;
+                LogException.LogInformation("Booking Status Id neeeeeeeeeeee: " + entity.BookingStatusId.ToString());
 
                 await _context.SaveChangesAsync();
 
-                var (response, _) = BookingConversion.FromEntity(existingEntity, null);
+                var (response, _) = await BookingConversion.FromEntity(existingEntity, null, _paymentStatusService);
 
                 return new PetLuvSystem.SharedLibrary.Responses.Response(true, 200, "OK")
                 {
@@ -201,6 +179,13 @@ namespace BookingApi.Infrastructure.Repositories
             }
             catch (Exception ex)
             {
+
+                if (ex.InnerException is not null)
+                {
+                    LogException.LogExceptions(ex.InnerException);
+                    return new PetLuvSystem.SharedLibrary.Responses.Response(false, 500, "Internal Server Error");
+                }
+
                 LogException.LogExceptions(ex);
                 return new PetLuvSystem.SharedLibrary.Responses.Response(false, 500, "Internal Server Error");
             }

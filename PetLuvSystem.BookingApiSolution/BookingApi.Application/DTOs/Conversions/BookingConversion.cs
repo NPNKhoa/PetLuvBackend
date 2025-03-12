@@ -4,6 +4,7 @@ using BookingApi.Application.DTOs.BookingTypeDTOs;
 using BookingApi.Application.DTOs.RoomBookingItemDTOs;
 using BookingApi.Application.DTOs.ServiceBookingDetailDTOs;
 using BookingApi.Application.DTOs.ServiceComboBookingDetailDTOs;
+using BookingApi.Application.Interfaces;
 using BookingApi.Domain.Entities;
 
 namespace BookingApi.Application.DTOs.Conversions
@@ -74,11 +75,24 @@ namespace BookingApi.Application.DTOs.Conversions
             PetId = dto.PetId
         };
 
-        public static (BookingDTO?, IEnumerable<BookingDTO>?) FromEntity(Booking? entity, IEnumerable<Booking>? entities)
+        public static Booking ToEntity(UpdateBookingDTO dto) => new()
+        {
+            BookingId = Guid.NewGuid(),
+            BookingStartTime = dto.BookingStartTime,
+            BookingEndTime = dto.BookingEndTime,
+            RoomRentalTime = dto.RoomRentalTime,
+            TotalEstimateTime = dto.TotalEstimateTime,
+            PaymentStatusId = dto.PaymentStatusId,
+            BookingStatusId = dto.BookingStatusId
+        };
+
+        public static async Task<(BookingDTO?, IEnumerable<BookingDTO>?)> FromEntity(Booking? entity, IEnumerable<Booking>? entities, ICheckPaymentStatusService paymentStatusService)
         {
 
             if (entity is not null && entities is null)
             {
+                string paymentStatusName = await paymentStatusService.GetPaymentStatusNameById(entity.PaymentStatusId);
+
                 return (new BookingDTO(
                         entity.BookingId,
                         entity.BookingStartTime,
@@ -102,6 +116,7 @@ namespace BookingApi.Application.DTOs.Conversions
                             entity.BookingStatus.IsVisible
                         ) : null!,
                         entity.PaymentStatusId,
+                        paymentStatusName,
                         entity.CustomerId,
                         entity.PetId,
                         entity.RoomBookingItem is not null ? new RoomBookingItemDTO(
@@ -134,57 +149,67 @@ namespace BookingApi.Application.DTOs.Conversions
 
             if (entities is not null && entity is null)
             {
-                return (null, entities.Select(e => new BookingDTO(
-                    e.BookingId,
-                    e.BookingStartTime,
-                    e.BookingEndTime,
-                    e.BookingNote ?? string.Empty,
-                    e.TotalAmount,
-                    e.DepositAmount,
-                    e.TotalEstimateTime,
-                    e.RoomRentalTime,
-                    e.BookingTypeId,
-                    e.BookingType is not null ? new BookingTypeDTO(
-                        e.BookingType.BookingTypeId,
-                        e.BookingType.BookingTypeName,
-                        e.BookingType.BookingTypeDesc,
-                        e.BookingType.IsVisible
-                    ) : null!,
-                    e.BookingStatusId,
-                    e.BookingStatus is not null ? new BookingStatusDTO(
-                        e.BookingStatus.BookingStatusId,
-                        e.BookingStatus.BookingStatusName,
-                        e.BookingStatus.IsVisible
-                    ) : null!,
-                    e.PaymentStatusId,
-                    e.CustomerId,
-                    e.PetId,
-                    e.RoomBookingItem is not null ? new RoomBookingItemDTO(
-                        e.RoomBookingItem.BookingId,
-                        e.RoomBookingItem.RoomId,
-                        e.RoomBookingItem.ItemPrice
-                    ) : null!,
-                    e.ServiceBookingDetails is not null
-                        && e.ServiceBookingDetails.Any()
-                            ? e.ServiceBookingDetails.Select(s => new ServiceBookingDetailDTO(
-                        s.ServiceId,
-                        s.BreedId,
-                        s.PetWeightRange,
-                        s.BookingId,
-                        s.ServiceItemName,
-                        s.BookingItemPrice
-                    )).ToList() : null!,
-                    e.ServiceComboBookingDetails is not null
-                        && e.ServiceComboBookingDetails.Any()
-                        ? e.ServiceComboBookingDetails.Select(s => new ServiceComboBookingDetailDTO(
-                        s.ServiceComboId,
-                        s.BreedId,
-                        s.PetWeightRange,
-                        s.BookingId,
-                        s.ServiceComboItemName,
-                        s.BookingItemPrice
-                    )).ToList() : null!
-                )));
+                var bookings = new List<BookingDTO>();
+
+                foreach (var e in entities)
+                {
+                    string paymentStatusName = await paymentStatusService.GetPaymentStatusNameById(e.PaymentStatusId);
+
+                    bookings.Add(new BookingDTO(
+                        e.BookingId,
+                        e.BookingStartTime,
+                        e.BookingEndTime,
+                        e.BookingNote ?? string.Empty,
+                        e.TotalAmount,
+                        e.DepositAmount,
+                        e.TotalEstimateTime,
+                        e.RoomRentalTime,
+                        e.BookingTypeId,
+                        e.BookingType is not null ? new BookingTypeDTO(
+                            e.BookingType.BookingTypeId,
+                            e.BookingType.BookingTypeName,
+                            e.BookingType.BookingTypeDesc,
+                            e.BookingType.IsVisible
+                        ) : null!,
+                        e.BookingStatusId,
+                        e.BookingStatus is not null ? new BookingStatusDTO(
+                            e.BookingStatus.BookingStatusId,
+                            e.BookingStatus.BookingStatusName,
+                            e.BookingStatus.IsVisible
+                        ) : null!,
+                        e.PaymentStatusId,
+                        paymentStatusName,
+                        e.CustomerId,
+                        e.PetId,
+                        e.RoomBookingItem is not null ? new RoomBookingItemDTO(
+                            e.RoomBookingItem.BookingId,
+                            e.RoomBookingItem.RoomId,
+                            e.RoomBookingItem.ItemPrice
+                        ) : null!,
+                        e.ServiceBookingDetails is not null
+                            && e.ServiceBookingDetails.Any()
+                                ? e.ServiceBookingDetails.Select(s => new ServiceBookingDetailDTO(
+                            s.ServiceId,
+                            s.BreedId,
+                            s.PetWeightRange,
+                            s.BookingId,
+                            s.ServiceItemName,
+                            s.BookingItemPrice
+                        )).ToList() : null!,
+                        e.ServiceComboBookingDetails is not null
+                            && e.ServiceComboBookingDetails.Any()
+                            ? e.ServiceComboBookingDetails.Select(s => new ServiceComboBookingDetailDTO(
+                            s.ServiceComboId,
+                            s.BreedId,
+                            s.PetWeightRange,
+                            s.BookingId,
+                            s.ServiceComboItemName,
+                            s.BookingItemPrice
+                        )).ToList() : null!
+                    ));
+                }
+
+                return (null, bookings);
             }
 
             return (null, null);

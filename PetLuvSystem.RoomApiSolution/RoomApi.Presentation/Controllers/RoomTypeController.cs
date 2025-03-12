@@ -7,7 +7,7 @@ using RoomApi.Application.Interfaces;
 
 namespace RoomApi.Presentation.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/room-types")]
     [ApiController]
     public class RoomTypeController(IRoomType _roomType) : ControllerBase
     {

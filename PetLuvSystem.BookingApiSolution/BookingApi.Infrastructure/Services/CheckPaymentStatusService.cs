@@ -186,5 +186,74 @@ namespace BookingApi.Infrastructure.Services
             }
         }
 
+        public async Task<string> GetPaymentStatusNameById(Guid paymentStatusId)
+        {
+            // Kiểm tra cache trước
+            var cacheData = await _cacheService.GetCachedValueAsync(MappingCacheKey);
+
+            if (!string.IsNullOrEmpty(cacheData))
+            {
+                LogException.LogInformation("Fetching payment statuses from cache...");
+
+                var cachedStatuses = JsonSerializer.Deserialize<Dictionary<string, Guid>>(cacheData);
+                if (cachedStatuses != null)
+                {
+                    var idToNameMap = cachedStatuses.ToDictionary(kv => kv.Value, kv => kv.Key); // Đảo ngược key-value
+                    if (idToNameMap.TryGetValue(paymentStatusId, out string paymentStatusName))
+                    {
+                        return paymentStatusName;
+                    }
+                }
+            }
+
+            LogException.LogInformation("No cache, fetching data from api...");
+            // Nếu cache không có, gọi API để lấy dữ liệu
+            var apiUrl = _configuration["ExternalServices:GetPaymentStatusIdByName"];
+            if (string.IsNullOrEmpty(apiUrl))
+            {
+                LogException.LogError("Payment Status API URL is not configured.");
+                return string.Empty;
+            }
+
+            LogException.LogInformation("Fetching payment status from API...");
+            var client = _httpClientFactory.CreateClient();
+            var response = await client.GetAsync(apiUrl);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                LogException.LogError($"API call failed: {response.StatusCode}");
+                return string.Empty;
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var jsonNode = JsonNode.Parse(json);
+            var paymentStatusJson = jsonNode?["data"]?.ToString();
+
+            if (string.IsNullOrEmpty(paymentStatusJson))
+            {
+                LogException.LogError("Failed to extract 'data' field from API response.");
+                return string.Empty;
+            }
+
+            var paymentStatuses = JsonSerializer.Deserialize<List<PaymentStatus>>(paymentStatusJson, options);
+            if (paymentStatuses == null || !paymentStatuses.Any())
+            {
+                LogException.LogError("Failed to deserialize response data.");
+                return string.Empty;
+            }
+
+            LogException.LogInformation("Payment statuses retrieved from API.");
+
+            var visibleStatuses = paymentStatuses
+                .Where(p => p.IsVisible)
+                .ToDictionary(p => p.PaymentStatusName, p => p.PaymentStatusId);
+
+            await _cacheService.SetCachedValueAsync(MappingCacheKey, JsonSerializer.Serialize(visibleStatuses), CacheExpiry);
+            LogException.LogInformation("Payment statuses updated and cached in Redis.");
+
+            return visibleStatuses.FirstOrDefault(x => x.Value == paymentStatusId).Key ?? string.Empty;
+        }
+
     }
 }

@@ -21,6 +21,7 @@ namespace BookingApi.Application.DTOs.BookingDTOs
         Guid BookingStatusId,
         BookingStatusDTO BookingStatus,
         Guid PaymentStatusId,
+        string PaymentStatusName,
         Guid CustomerId,
         Guid PetId,
         RoomBookingItemDTO RoomBookingItem,

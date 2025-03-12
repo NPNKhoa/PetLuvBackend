@@ -231,7 +231,7 @@ namespace BookingApi.Presentation.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateBooking([FromRoute] Guid id, [FromBody] CreateUpdateBookingDTO dto)
+        public async Task<IActionResult> UpdateBooking([FromRoute] Guid id, [FromBody] UpdateBookingDTO dto)
         {
             if (!ModelState.IsValid)
             {

@@ -54,7 +54,6 @@ namespace ServiceApi.Infrastructure.Repositories
                     return new Response(false, 404, $"Can not find service with id {id}");
                 }
 
-                var (responseData, _) = ServiceConversion.FromEntity(existingService, null!);
 
                 // TODO: Before delete, check if service is in use by any other entity
 
@@ -62,6 +61,8 @@ namespace ServiceApi.Infrastructure.Repositories
                 {
                     existingService.IsVisible = false;
                     await context.SaveChangesAsync();
+
+                    var (responseData, _) = ServiceConversion.FromEntity(existingService, null!);
 
                     return new Response(true, 200, "Service was marked as hidden successfully")
                     {
@@ -72,9 +73,11 @@ namespace ServiceApi.Infrastructure.Repositories
                 var deletedService = context.Services.Remove(existingService) ?? throw new Exception("Fail to delete service");
                 await context.SaveChangesAsync();
 
+                var (response, _) = ServiceConversion.FromEntity(existingService, null!);
+
                 return new Response(false, 200, $"Service with id {id} was permanently deleted")
                 {
-                    Data = new { data = responseData }
+                    Data = new { data = response }
                 };
             }
             catch (Exception ex)
