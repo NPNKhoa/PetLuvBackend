@@ -11,33 +11,50 @@ namespace ServiceApi.Infrastructure.Repositories
 {
     public class ServiceComboRepository(ServiceDbContext context, IBreedMappingService _breedMappingClient) : IServiceCombo
     {
-        public async Task<Response> CreateAsync(ServiceCombo entity)
+        public async Task<Response> CreateAsync(ServiceCombo entity, ICollection<Guid> serviceIds)
         {
-            try
-            {
-                var existingServiceCombo = await GetByAsync(x => x.ServiceComboName == entity.ServiceComboName);
+            var strategy = context.Database.CreateExecutionStrategy();
 
-                if (existingServiceCombo.Data is not null)
+            return await strategy.ExecuteAsync(async () =>
+            {
+                using var transaction = await context.Database.BeginTransactionAsync();
+                try
                 {
-                    return new Response(false, 409, "Service Combo already exists");
+                    var existingServiceCombo = await GetByAsync(x => x.ServiceComboName == entity.ServiceComboName);
+                    if (existingServiceCombo.Data is not null)
+                    {
+                        return new Response(false, 409, "Service Combo already exists");
+                    }
+
+                    await context.ServiceCombos.AddAsync(entity);
+                    await context.SaveChangesAsync();
+
+                    var serviceComboMappings = serviceIds.Select(serviceId => new ServiceComboMapping
+                    {
+                        ServiceComboId = entity.ServiceComboId,
+                        ServiceId = serviceId
+                    }).ToList();
+
+                    await context.ServiceComboMappings.AddRangeAsync(serviceComboMappings);
+                    await context.SaveChangesAsync();
+
+                    await transaction.CommitAsync();
+
+                    var (responseData, _) = ServiceComboConversion.FromEntity(entity, null!);
+                    return new Response(true, 201, "Service Combo created successfully")
+                    {
+                        Data = new { data = responseData },
+                    };
                 }
-
-                var response = await context.ServiceCombos.AddAsync(entity) ?? throw new Exception("Fail to create Service Combo");
-                await context.SaveChangesAsync();
-
-                var (responseData, _) = ServiceComboConversion.FromEntity(entity, null!);
-
-                return new Response(true, 201, "Service Combo created successfully")
+                catch (Exception ex)
                 {
-                    Data = new { data = responseData },
-                };
-            }
-            catch (Exception ex)
-            {
-                LogException.LogExceptions(ex);
-                return new Response(false, 500, "Internal Server Error");
-            }
+                    await transaction.RollbackAsync();
+                    LogException.LogExceptions(ex);
+                    return new Response(false, 500, "Internal Server Error");
+                }
+            });
         }
+
 
         public async Task<Response> DeleteAsync(Guid id)
         {
@@ -174,46 +191,71 @@ namespace ServiceApi.Infrastructure.Repositories
             }
         }
 
-        public async Task<Response> UpdateAsync(Guid id, ServiceCombo entity)
+        public async Task<Response> UpdateAsync(Guid id, ServiceCombo entity, ICollection<Guid> serviceIds)
         {
-            try
+            var strategy = context.Database.CreateExecutionStrategy();
+
+            return await strategy.ExecuteAsync(async () =>
             {
-                var existingServiceCombo = await FindByIdAsync(id, false);
-
-                if (existingServiceCombo is null)
+                using var transaction = await context.Database.BeginTransactionAsync();
+                try
                 {
-                    return new Response(false, 404, $"Can not find service combo with id {id}");
-                }
+                    var existingServiceCombo = await FindByIdAsync(id, false, true);
 
-                bool hasChanges =
-                    existingServiceCombo.ServiceComboName != entity.ServiceComboName ||
-                    existingServiceCombo.ServiceComboDesc != entity.ServiceComboDesc ||
-                    existingServiceCombo.IsVisible != entity.IsVisible;
+                    if (existingServiceCombo is null)
+                    {
+                        return new Response(false, 404, $"Can not find service combo with id {id}");
+                    }
 
-                if (hasChanges)
-                {
-                    existingServiceCombo.ServiceComboName = entity.ServiceComboName;
-                    existingServiceCombo.ServiceComboDesc = entity.ServiceComboDesc;
-                    existingServiceCombo.IsVisible = entity.IsVisible;
+                    bool hasChanges =
+                        existingServiceCombo.ServiceComboName != entity.ServiceComboName ||
+                        existingServiceCombo.ServiceComboDesc != entity.ServiceComboDesc ||
+                        existingServiceCombo.IsVisible != entity.IsVisible;
 
+                    if (hasChanges)
+                    {
+                        existingServiceCombo.ServiceComboName = entity.ServiceComboName;
+                        existingServiceCombo.ServiceComboDesc = entity.ServiceComboDesc;
+                        existingServiceCombo.IsVisible = entity.IsVisible;
+
+                        await context.SaveChangesAsync();
+                    }
+
+                    var existingMappings = context.ServiceComboMappings
+                        .Where(m => m.ServiceComboId == existingServiceCombo.ServiceComboId);
+                    context.ServiceComboMappings.RemoveRange(existingMappings);
                     await context.SaveChangesAsync();
-                }
 
-                var (responseData, _) = ServiceComboConversion.FromEntity(existingServiceCombo, null!);
+                    var serviceComboMappings = serviceIds.Select(serviceId => new ServiceComboMapping
+                    {
+                        ServiceComboId = existingServiceCombo.ServiceComboId,
+                        ServiceId = serviceId
+                    }).ToList();
 
-                return hasChanges ?
-                    new Response(true, 200, "Service Combo updated successfully")
+                    if (serviceComboMappings.Any())
+                    {
+                        await context.ServiceComboMappings.AddRangeAsync(serviceComboMappings);
+                        await context.SaveChangesAsync();
+                    }
+
+                    await transaction.CommitAsync();
+
+                    var (responseData, _) = ServiceComboConversion.FromEntity(existingServiceCombo, null!);
+
+                    return new Response(true, 200, "Service Combo updated successfully")
                     {
                         Data = new { data = responseData }
-                    } :
-                    new Response(false, 204, "No changes made");
-            }
-            catch (Exception ex)
-            {
-                LogException.LogExceptions(ex);
-                return new Response(false, 500, "Internal Server Error");
-            }
+                    };
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    LogException.LogExceptions(ex);
+                    return new Response(false, 500, "Internal Server Error");
+                }
+            });
         }
+
 
         public async Task<ServiceCombo> FindByIdAsync(Guid id, bool noTracking = false, bool includeNavigation = false)
         {
@@ -226,10 +268,23 @@ namespace ServiceApi.Infrastructure.Repositories
 
             if (includeNavigation)
             {
-                query = query.Include(x => x.ServiceComboMappings).Include(x => x.ServiceComboVariants);
+                query = query
+                    .Include(x => x.ServiceComboMappings)
+                        .ThenInclude(x => x.Service)
+                    .Include(x => x.ServiceComboVariants);
             }
 
             return await query.FirstOrDefaultAsync() ?? null!;
+        }
+
+        public Task<Response> CreateAsync(ServiceCombo entity)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Response> UpdateAsync(Guid id, ServiceCombo entity)
+        {
+            throw new NotImplementedException();
         }
     }
 }

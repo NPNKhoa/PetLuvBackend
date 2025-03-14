@@ -38,6 +38,9 @@ namespace BookingApi.Infrastructure.Repositories
                 var entities = await _context.Bookings
                     .Include(b => b.BookingStatus)
                     .Include(b => b.BookingType)
+                    .Include(b => b.ServiceBookingDetails)
+                    .Include(b => b.ServiceComboBookingDetails)
+                    .Include(b => b.RoomBookingItem)
                     .OrderByDescending(b => b.BookingStartTime)
                     .Skip((pageIndex - 1) * pageSize)
                     .Take(pageSize)

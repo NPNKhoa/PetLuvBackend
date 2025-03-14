@@ -6,8 +6,7 @@ namespace ServiceApi.Application.DTOs.ServiceComboDTOs
     (
         [Required] string ServiceComboName,
         [Required] string ServiceComboDesc,
-        [Required, Range(1, int.MaxValue)] decimal ComboPrice,
-        [Required] ICollection<Guid>? serviceId,
-        bool IsVisible = false
+        [Required] ICollection<Guid> serviceId,
+        bool IsVisible
     );
 }

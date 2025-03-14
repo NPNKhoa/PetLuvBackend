@@ -41,6 +41,7 @@ namespace RoomApi.Application.DTOs.Conversions
                     entity.PricePerHour,
                     entity.PricePerDay,
                     entity.IsVisible,
+                    entity.RoomTypeId,
                     entity.RoomType.RoomTypeName,
                     entity.RoomImages.Select(ri => ri.RoomImagePath).ToList()
                 );
@@ -57,6 +58,7 @@ namespace RoomApi.Application.DTOs.Conversions
                     e.PricePerHour,
                     e.PricePerDay,
                     e.IsVisible,
+                    e.RoomTypeId,
                     e.RoomType.RoomTypeName,
                     e.RoomImages.Select(ri => ri.RoomImagePath).ToList()
                 ));

@@ -70,7 +70,7 @@ namespace ServiceApi.Presentation.Controllers
             try
             {
                 var entity = ServiceComboConversion.ToEntity(dto);
-                var response = await _serviceCombo.CreateAsync(entity);
+                var response = await _serviceCombo.CreateAsync(entity, dto.serviceId);
                 return response.ToActionResult(this);
             }
             catch (Exception ex)
@@ -109,7 +109,8 @@ namespace ServiceApi.Presentation.Controllers
             try
             {
                 var entity = ServiceComboConversion.ToEntity(dto);
-                var response = await _serviceCombo.UpdateAsync(id, entity);
+                entity.ServiceComboId = id;
+                var response = await _serviceCombo.UpdateAsync(id, entity, dto.serviceId);
                 return response.ToActionResult(this);
             }
             catch (Exception ex)

@@ -23,10 +23,10 @@ namespace ServiceApi.Application.DTOs.Conversions
 
         public static ServiceCombo ToEntity(CreateUpdateServiceComboDTO dto) => new()
         {
+            ServiceComboId = Guid.NewGuid(),
             ServiceComboName = dto.ServiceComboName,
             ServiceComboDesc = dto.ServiceComboDesc,
             IsVisible = dto.IsVisible,
-            ServiceComboMappings = new List<ServiceComboMapping>(),
         };
 
         public static (ServiceComboDTO?, ICollection<ServiceComboDTO>?) FromEntity(ServiceCombo? serviceCombo, ICollection<ServiceCombo>? serviceCombos, Dictionary<Guid, string>? breedMapping = null)
@@ -56,7 +56,8 @@ namespace ServiceApi.Application.DTOs.Conversions
                         x.Service?.ServiceImages?.Select(s => s.ServiceImagePath).ToList()!,
                         new List<ServiceVariantDTO>(),
                         new List<WalkDogServiceVariantDTO>()
-                    )).ToList()
+                    )).ToList(),
+                    serviceCombo.IsVisible
                 );
 
                 return (singleServiceCombo, null);
@@ -87,7 +88,8 @@ namespace ServiceApi.Application.DTOs.Conversions
                         x.Service?.ServiceImages?.Select(s => s.ServiceImagePath).ToList()!,
                         new List<ServiceVariantDTO>(),
                         new List<WalkDogServiceVariantDTO>()
-                    )).ToList()
+                    )).ToList(),
+                    p.IsVisible
                 )).ToList();
 
                 return (null, _serviceCombos);

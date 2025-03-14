@@ -11,6 +11,6 @@ namespace ServiceApi.Application.DTOs.ServiceComboDTOs
         [Required] string? ServiceComboDesc,
         [Required] ICollection<ServiceComboVariantDTO>? ComboVariants,
         [Required] ICollection<ServiceDTO>? Services,
-        bool IsVisible = false
+        bool IsVisible
     );
 }

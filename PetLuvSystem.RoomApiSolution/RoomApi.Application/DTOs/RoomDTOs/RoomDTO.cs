@@ -8,6 +8,7 @@
         decimal PricePerHour,
         decimal PricePerDay,
         bool IsVisible,
+        Guid RoomTypeId,
         string RoomTypeName,
 
         ICollection<string> RoomImages
