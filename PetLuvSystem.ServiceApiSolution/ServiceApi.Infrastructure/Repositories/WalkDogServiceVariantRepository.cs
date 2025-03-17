@@ -9,7 +9,7 @@ using System.Linq.Expressions;
 
 namespace ServiceApi.Infrastructure.Repositories
 {
-    public class WalkDogServiceVariantRepository(ServiceDbContext context) : IWalkDogServiceVariant
+    public class WalkDogServiceVariantRepository(ServiceDbContext context, IBreedMappingService _breedMappingClient) : IWalkDogServiceVariant
     {
         public async Task<Response> CreateAsync(WalkDogServiceVariant entity)
         {
@@ -28,7 +28,7 @@ namespace ServiceApi.Infrastructure.Repositories
 
                 var (responseData, _) = WalkDogServiceVariantConversion.FromEntity(entity, null);
 
-                return new Response(false, 201, "Service Variant created successfully")
+                return new Response(true, 201, "Service Variant created successfully")
                 {
                     Data = new { data = responseData }
                 };
@@ -116,7 +116,8 @@ namespace ServiceApi.Infrastructure.Repositories
                     return new Response(false, 404, "Service Variants not found");
                 }
 
-                var (_, responseData) = WalkDogServiceVariantConversion.FromEntity(null, serviceVariants);
+                var breedMapping = await _breedMappingClient.GetBreedMappingAsync();
+                var (_, responseData) = WalkDogServiceVariantConversion.FromEntity(null, serviceVariants, breedMapping);
 
                 return new Response(true, 200, "Service Variants retrieved successfully")
                 {

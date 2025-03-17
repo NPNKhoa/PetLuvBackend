@@ -34,6 +34,13 @@ namespace ServiceApi.Presentation.Controllers
             }
         }
 
+        [HttpGet("{serviceId}")]
+        public async Task<IActionResult> GetByService([FromRoute] Guid serviceId)
+        {
+            var response = await _walkDogServiceVariant.GetByServiceAsync(serviceId);
+            return response.ToActionResult(this);
+        }
+
         [HttpPut("{serviceId}/{breedId}")]
         public async Task<IActionResult> UpdateWalkDogServiceVariant([FromRoute] Guid serviceId, [FromRoute] Guid breedId, [FromBody] decimal pricePerPeriod)
         {

@@ -37,7 +37,7 @@ namespace ServiceApi.Application.DTOs.Conversions
             ServiceId = Guid.NewGuid(),
             ServiceName = dto.ServiceName,
             ServiceDesc = dto.ServiceDesc,
-            IsVisible = dto.IsVisible,
+            IsVisible = false,
             ServiceTypeId = dto.ServiceTypeId
         };
 
@@ -78,6 +78,7 @@ namespace ServiceApi.Application.DTOs.Conversions
                     (
                         p.ServiceId,
                         p.BreedId,
+                        (breedMapping != null && breedMapping.TryGetValue(p.BreedId, out var name)) ? name : string.Empty,
                         p.PricePerPeriod,
                         p.IsVisible
                     )).ToList()
@@ -110,6 +111,7 @@ namespace ServiceApi.Application.DTOs.Conversions
                     (
                         walkVariant.ServiceId,
                         walkVariant.BreedId,
+                        (breedMapping != null && breedMapping.TryGetValue(walkVariant.BreedId, out var name)) ? name : string.Empty,
                         walkVariant.PricePerPeriod,
                         walkVariant.IsVisible
                     )).ToList() ?? new List<WalkDogServiceVariantDTO>()

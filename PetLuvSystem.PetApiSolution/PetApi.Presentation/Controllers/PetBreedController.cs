@@ -12,11 +12,17 @@ namespace PetApi.Presentation.Controllers
     public class PetBreedController(IPetBreed _petBreed, IPetType _petType) : ControllerBase
     {
         [HttpGet]
-        public async Task<IActionResult> GetAllBreeds([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetAllBreeds([FromQuery] string? petType, [FromQuery] int? pageIndex = 1, [FromQuery] int? pageSize = 10)
         {
             try
             {
-                var response = await _petBreed.GetAllAsync(pageIndex, pageSize);
+                int validPageIndex = pageIndex is not null ? (int)pageIndex : 0;
+                int validPageSize = pageSize is not null ? (int)pageSize : 0;
+
+                var response = string.IsNullOrEmpty(petType)
+                    ? await _petBreed.GetAllAsync(validPageIndex, validPageSize)
+                    : await _petBreed.GetByAsync(b => b.PetType.PetTypeName.Trim().ToLower().Equals(petType.ToLower().Trim()), true);
+
                 return response.ToActionResult(this);
             }
             catch (Exception ex)

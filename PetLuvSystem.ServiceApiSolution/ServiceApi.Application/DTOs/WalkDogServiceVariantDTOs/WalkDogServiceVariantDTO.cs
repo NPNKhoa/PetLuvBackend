@@ -4,6 +4,7 @@
     (
         Guid ServiceId,
         Guid BreedId,
+        string BreedName,
         decimal PricePerPeriod,
         bool IsVisible
     );

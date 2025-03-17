@@ -7,6 +7,7 @@ using ServiceApi.Application.DTOs.ServiceDTOs;
 using ServiceApi.Application.Interfaces;
 using ServiceApi.Application.Jobs;
 using ServiceApi.Domain.Entities;
+using System.Linq.Expressions;
 
 namespace ServiceApi.Presentation.Controllers
 {
@@ -15,11 +16,20 @@ namespace ServiceApi.Presentation.Controllers
     public class ServiceController(IService serviceInterface, IServiceType serviceTypeInterface, IServiceVariant serviceVariantInterface, IWalkDogServiceVariant walkDogServiceVariantInterface, ISchedulerFactory schedulerFactory) : ControllerBase
     {
         [HttpGet]
-        public async Task<IActionResult> GetServices([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetServices([FromQuery] string? serviceType, [FromQuery] bool? showAll, [FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
-                var response = await serviceInterface.GetAllAsync(pageIndex, pageSize);
+                Expression<Func<Service, bool>> predicate = !string.IsNullOrEmpty(serviceType) && showAll is not null
+                    ? s => s.ServiceType!.ServiceTypeName!.ToLower().Trim().Contains(serviceType.ToLower().Trim()) && s.IsVisible == true
+                    : !string.IsNullOrEmpty(serviceType) && showAll is null
+                        ? s => s.ServiceType!.ServiceTypeName!.ToLower().Trim().Contains(serviceType.ToLower().Trim())
+                        : s => s.IsVisible == true;
+
+                var response = string.IsNullOrEmpty(serviceType) && showAll is null
+                    ? await serviceInterface.GetAllAsync(pageIndex, pageSize)
+                    : await serviceInterface.GetByAsync(predicate, true);
+
                 return response.ToActionResult(this);
             }
             catch (Exception ex)

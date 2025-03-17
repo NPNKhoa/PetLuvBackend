@@ -22,6 +22,8 @@ namespace ServiceApi.Infrastructure.Repositories
                     return new Response(false, 409, "This Service Variant already exists");
                 }
 
+                LogException.LogInformation("[Service service] Variant.Isvisible: " + entity.IsVisible.ToString());
+
                 var serviceVariant = await context.ServiceVariants.AddAsync(entity)
                                             ?? throw new Exception("Failed to create service variant");
 
@@ -32,7 +34,7 @@ namespace ServiceApi.Infrastructure.Repositories
 
                 var (responseData, _) = ServiceVariantConversion.FromEntity(entity, null);
 
-                return new Response(false, 201, "Service Variant created successfully")
+                return new Response(true, 201, "Service Variant created successfully")
                 {
                     Data = new { data = responseData }
                 };

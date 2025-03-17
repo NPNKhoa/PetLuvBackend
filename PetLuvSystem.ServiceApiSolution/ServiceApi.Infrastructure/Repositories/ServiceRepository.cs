@@ -149,7 +149,7 @@ namespace ServiceApi.Infrastructure.Repositories
 
                 if (service is null)
                 {
-                    return new Response(false, 404, "Can not find any service with the provided predicate");
+                    return new Response(false, 404, "Không tìm thấy dịch vụ theo yêu cầu");
                 }
 
                 var (singleService, _) = ServiceConversion.FromEntity(service, null);
@@ -157,6 +157,38 @@ namespace ServiceApi.Infrastructure.Repositories
                 return new Response(true, 200, "Service retrived successfully")
                 {
                     Data = new { data = singleService }
+                };
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
+                return new Response(false, 500, "Internal Server Error");
+            }
+        }
+
+        public async Task<Response> GetByAsync(Expression<Func<Service, bool>> predicate, bool isReturnList = false)
+        {
+            try
+            {
+                var services = await context.Services
+                    .Where(predicate)
+                    .AsNoTracking()
+                    .Include(s => s.ServiceType)
+                    .Include(s => s.ServiceImages)
+                    .Include(s => s.ServiceVariants)
+                    .Include(s => s.WalkDogServiceVariants)
+                    .ToListAsync();
+
+                if (services is null || services.Count == 0)
+                {
+                    return new Response(false, 404, "Không tìm thấy dịch vụ theo yêu cầu");
+                }
+
+                var (_, response) = ServiceConversion.FromEntity(null, services);
+
+                return new Response(true, 200, "Service retrived successfully")
+                {
+                    Data = new { data = response }
                 };
             }
             catch (Exception ex)

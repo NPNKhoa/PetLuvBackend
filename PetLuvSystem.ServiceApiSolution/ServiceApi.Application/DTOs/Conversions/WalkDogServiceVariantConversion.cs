@@ -13,7 +13,7 @@ namespace ServiceApi.Application.DTOs.Conversions
             IsVisible = dto.IsVisible
         };
 
-        public static (WalkDogServiceVariantDTO?, IEnumerable<WalkDogServiceVariantDTO>?) FromEntity(WalkDogServiceVariant? serviceVariant, IEnumerable<WalkDogServiceVariant>? serviceVariants)
+        public static (WalkDogServiceVariantDTO?, IEnumerable<WalkDogServiceVariantDTO>?) FromEntity(WalkDogServiceVariant? serviceVariant, IEnumerable<WalkDogServiceVariant>? serviceVariants, Dictionary<Guid, string>? breedMapping = null)
         {
             if (serviceVariant is not null && serviceVariants is null)
             {
@@ -21,6 +21,7 @@ namespace ServiceApi.Application.DTOs.Conversions
                 (
                     serviceVariant.ServiceId,
                     serviceVariant.BreedId,
+                    (breedMapping != null && breedMapping.TryGetValue(serviceVariant.BreedId, out var name)) ? name : string.Empty,
                     serviceVariant.PricePerPeriod,
                     serviceVariant.IsVisible
                 );
@@ -33,6 +34,7 @@ namespace ServiceApi.Application.DTOs.Conversions
                 (
                     p.ServiceId,
                     p.BreedId,
+                    (breedMapping != null && breedMapping.TryGetValue(p.BreedId, out var name)) ? name : string.Empty,
                     p.PricePerPeriod,
                     p.IsVisible
                 )).ToList();

@@ -28,6 +28,7 @@ namespace PetApi.Infrastructure.DependencyInjection
 
             services.AddSingleton<IRedisCacheService, RedisCacheService>();
             services.AddScoped<IPetCachingService, PetCachingService>();
+            services.AddScoped<IBreedMappingCacheUpdateService, BreedMappingCacheUpdateService>();
 
             return services;
         }

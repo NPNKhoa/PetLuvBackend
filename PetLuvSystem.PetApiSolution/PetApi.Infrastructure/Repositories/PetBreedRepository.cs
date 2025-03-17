@@ -9,7 +9,7 @@ using System.Linq.Expressions;
 
 namespace PetApi.Infrastructure.Repositories
 {
-    public class PetBreedRepository(PetDbContext _context) : IPetBreed
+    public class PetBreedRepository(PetDbContext _context, IBreedMappingCacheUpdateService _breedMappingCacheService) : IPetBreed
     {
         public async Task<Response> CreateAsync(PetBreed entity)
         {
@@ -24,6 +24,10 @@ namespace PetApi.Infrastructure.Repositories
 
                 await _context.PetBreeds.AddAsync(entity);
                 await _context.SaveChangesAsync();
+
+                var entities = await _context.PetBreeds.ToListAsync();
+
+                await _breedMappingCacheService.UpdateBreedMappingCacheAsync(entities);
 
                 var (responseData, _) = PetBreedConversion.FromEntity(entity, null);
 
@@ -65,6 +69,10 @@ namespace PetApi.Infrastructure.Repositories
 
                 await _context.SaveChangesAsync();
 
+                var entities = await _context.PetBreeds.ToListAsync();
+
+                await _breedMappingCacheService.UpdateBreedMappingCacheAsync(entities);
+
                 var (responseData, _) = PetBreedConversion.FromEntity(existingPetBreed, null);
 
                 return new Response(true, 200, message)
@@ -84,9 +92,14 @@ namespace PetApi.Infrastructure.Repositories
         {
             try
             {
+                var query = _context.PetBreeds.AsQueryable();
+
+                if (pageIndex > 0 && pageSize > 0)
+                {
+                    query = query.Skip((pageIndex - 1) * pageSize).Take(pageSize);
+                }
+
                 var petBreeds = await _context.PetBreeds
-                    .Skip((pageIndex - 1) * pageSize)
-                    .Take(pageSize)
                     .Include(pb => pb.PetType)
                     .Include(pb => pb.Pets)
                     .ToListAsync();
@@ -95,6 +108,7 @@ namespace PetApi.Infrastructure.Repositories
                 {
                     return new Response(false, 404, "No Pet Breeds found");
                 }
+
 
                 var (_, responseData) = PetBreedConversion.FromEntity(null, petBreeds);
 
@@ -160,9 +174,16 @@ namespace PetApi.Infrastructure.Repositories
 
                 if (isReturnList)
                 {
+                    var entity = await query.ToListAsync();
+
+                    if (entity is null || !entity.Any())
+                    {
+                        return new Response(false, 404, "Không tìm thấy loài cần tìm");
+                    }
+
                     return new Response(true, 200, "Successful")
                     {
-                        Data = await query.ToListAsync()
+                        Data = entity
                     };
                 }
 
@@ -230,6 +251,10 @@ namespace PetApi.Infrastructure.Repositories
                 existingPetBreed.IsVisible = entity.IsVisible;
 
                 await _context.SaveChangesAsync();
+
+                var entities = await _context.PetBreeds.ToListAsync();
+
+                await _breedMappingCacheService.UpdateBreedMappingCacheAsync(entities);
 
                 var (responseData, _) = PetBreedConversion.FromEntity(existingPetBreed, null);
 
