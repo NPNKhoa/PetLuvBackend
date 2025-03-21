@@ -7,7 +7,7 @@ namespace ServiceApi.Infrastructure.Services
 {
     public class ServiceVariantCachingService(IRedisCacheService _cacheService) : IServiceVariantCachingService
     {
-        private const string CacheKey = "checkPet";
+        private const string CacheKey = "ServiceService";
         private readonly TimeSpan CacheExpiry = TimeSpan.FromHours(24);
 
         public async Task UpdateCacheAsync(List<ServiceVariant> serviceVariants)
@@ -16,7 +16,7 @@ namespace ServiceApi.Infrastructure.Services
             {
                 if (serviceVariants == null || !serviceVariants.Any())
                 {
-                    LogException.LogError("No pet found to update cache.");
+                    LogException.LogError("No variant found to update cache.");
                     return;
                 }
 
@@ -28,7 +28,7 @@ namespace ServiceApi.Infrastructure.Services
 
                 await _cacheService.SetCachedValueAsync(CacheKey, jsonData, CacheExpiry);
 
-                LogException.LogInformation("Pet cache updated successfully.");
+                LogException.LogInformation("variant cache updated successfully.");
             }
             catch (Exception ex)
             {

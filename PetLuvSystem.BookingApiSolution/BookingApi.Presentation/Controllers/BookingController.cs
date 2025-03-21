@@ -74,6 +74,7 @@ namespace BookingApi.Presentation.Controllers
                     return (new PetLuvSystem.SharedLibrary.Responses.Response(false, 404, "Không tìm thấy khách hàng này")).ToActionResult(this);
                 }
 
+                LogException.LogInformation($"[Booking Service] Cho nay ok ne");
                 if ((await _checkPetService.CheckPetAsync(dto.PetId)) == false)
                 {
                     return (new PetLuvSystem.SharedLibrary.Responses.Response(false, 404, "Không tìm thấy thú cưng này")).ToActionResult(this);

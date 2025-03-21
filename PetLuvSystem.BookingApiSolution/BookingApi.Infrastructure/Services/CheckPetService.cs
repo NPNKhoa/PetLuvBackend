@@ -30,10 +30,16 @@ namespace BookingApi.Infrastructure.Services
             {
                 LogException.LogInformation("Data fetched from cache");
 
-                var cachedPets = JsonSerializer.Deserialize<HashSet<Guid>>(cacheData);
-                if (cachedPets != null && cachedPets.Contains(petId))
+                var cachedPets = JsonSerializer.Deserialize<HashSet<PetDTO>>(cacheData);
+
+                if (cachedPets != null)
                 {
-                    return true;
+                    var petIds = cachedPets.Select(p => p.PetId).ToList();
+
+                    if (petIds.Contains(petId))
+                    {
+                        return true;
+                    }
                 }
 
                 return false;

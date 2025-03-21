@@ -16,7 +16,7 @@ namespace ServiceApi.Infrastructure.Services
             {
                 if (variants == null || !variants.Any())
                 {
-                    LogException.LogError("No pet found to update cache.");
+                    LogException.LogError("No walkdog found to update cache.");
                     return;
                 }
 
@@ -28,7 +28,7 @@ namespace ServiceApi.Infrastructure.Services
 
                 await _cacheService.SetCachedValueAsync(CacheKey, jsonData, CacheExpiry);
 
-                LogException.LogInformation("Pet cache updated successfully.");
+                LogException.LogInformation("walkdog cache updated successfully.");
             }
             catch (Exception ex)
             {

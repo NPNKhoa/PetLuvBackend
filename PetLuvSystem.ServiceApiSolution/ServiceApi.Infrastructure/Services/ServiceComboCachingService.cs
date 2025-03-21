@@ -7,7 +7,7 @@ namespace ServiceApi.Infrastructure.Services
 {
     class ServiceComboCachingService(IRedisCacheService _cacheService) : IServiceComboCachingService
     {
-        private const string CacheKey = "walkDogService";
+        private const string CacheKey = "ComboService";
         private readonly TimeSpan CacheExpiry = TimeSpan.FromHours(24);
 
         public async Task Updatecache(List<ServiceComboVariant> serviceComboVariants)
@@ -16,7 +16,7 @@ namespace ServiceApi.Infrastructure.Services
             {
                 if (serviceComboVariants == null || !serviceComboVariants.Any())
                 {
-                    LogException.LogError("No pet found to update cache.");
+                    LogException.LogError("No combo found to update cache.");
                     return;
                 }
 
@@ -28,7 +28,7 @@ namespace ServiceApi.Infrastructure.Services
 
                 await _cacheService.SetCachedValueAsync(CacheKey, jsonData, CacheExpiry);
 
-                LogException.LogInformation("Pet cache updated successfully.");
+                LogException.LogInformation("combo cache updated successfully.");
             }
             catch (Exception ex)
             {

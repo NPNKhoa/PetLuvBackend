@@ -10,6 +10,7 @@ namespace ServiceApi.Application.DTOs.Conversions
             ServiceId = dto.ServiceId,
             BreedId = dto.BreedId,
             PricePerPeriod = dto.PricePerPeriod,
+            Period = dto.Period,
             IsVisible = dto.IsVisible
         };
 
@@ -23,6 +24,7 @@ namespace ServiceApi.Application.DTOs.Conversions
                     serviceVariant.BreedId,
                     (breedMapping != null && breedMapping.TryGetValue(serviceVariant.BreedId, out var name)) ? name : string.Empty,
                     serviceVariant.PricePerPeriod,
+                    serviceVariant.Period,
                     serviceVariant.IsVisible
                 );
                 return (singleServiceVariant, null);
@@ -36,6 +38,7 @@ namespace ServiceApi.Application.DTOs.Conversions
                     p.BreedId,
                     (breedMapping != null && breedMapping.TryGetValue(p.BreedId, out var name)) ? name : string.Empty,
                     p.PricePerPeriod,
+                    p.Period,
                     p.IsVisible
                 )).ToList();
 

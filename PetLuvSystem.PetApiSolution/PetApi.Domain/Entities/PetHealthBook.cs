@@ -7,7 +7,7 @@ namespace PetApi.Domain.Entities
     {
         [Key, ForeignKey("Pet")]
         public Guid PetHealthBookId { get; set; }
-        public Pet Pet { get; set; }
+        public virtual Pet Pet { get; set; }
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
         public virtual ICollection<PetHealthBookDetail> PetHealthBookDetails { get; set; }

@@ -25,7 +25,7 @@ namespace ServiceApi.Application.DTOs.Conversions
             IsVisible = dto.IsVisible
         };
 
-        public static (ServiceVariantDTO?, IEnumerable<ServiceVariantDTO>?) FromEntity(ServiceVariant? serviceVariant, IEnumerable<ServiceVariant>? serviceVariants)
+        public static (ServiceVariantDTO?, IEnumerable<ServiceVariantDTO>?) FromEntity(ServiceVariant? serviceVariant, IEnumerable<ServiceVariant>? serviceVariants, Dictionary<Guid, string>? breedMapping = null)
         {
             if (serviceVariant is not null && serviceVariants is null)
             {
@@ -33,7 +33,7 @@ namespace ServiceApi.Application.DTOs.Conversions
                 (
                     serviceVariant.ServiceId,
                     serviceVariant.BreedId,
-                    string.Empty,
+                    (breedMapping != null && breedMapping.TryGetValue(serviceVariant.BreedId, out var name)) ? name : string.Empty,
                     serviceVariant.PetWeightRange!,
                     serviceVariant.Price,
                     serviceVariant.EstimateTime,
@@ -48,7 +48,7 @@ namespace ServiceApi.Application.DTOs.Conversions
                 (
                     p.ServiceId,
                     p.BreedId,
-                    string.Empty,
+                    (breedMapping != null && breedMapping.TryGetValue(p.BreedId, out var name)) ? name : string.Empty,
                     p.PetWeightRange!,
                     p.Price,
                     p.EstimateTime,

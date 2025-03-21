@@ -6,6 +6,7 @@
         Guid BreedId,
         string BreedName,
         decimal PricePerPeriod,
+        int Period,
         bool IsVisible
     );
 }

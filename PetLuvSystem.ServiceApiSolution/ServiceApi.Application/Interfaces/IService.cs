@@ -9,5 +9,6 @@ namespace ServiceApi.Application.Interfaces
     {
         public Task<Service> FindServiceById(Guid id, bool noTracking = false, bool includeOthers = false);
         public Task<Response> GetByAsync(Expression<Func<Service, bool>> predicate, bool isReturnList = false);
+        public Task<Response> GetAppropriateServices(Guid? breedId, string? petWeight);
     }
 }

@@ -80,6 +80,7 @@ namespace ServiceApi.Application.DTOs.Conversions
                         p.BreedId,
                         (breedMapping != null && breedMapping.TryGetValue(p.BreedId, out var name)) ? name : string.Empty,
                         p.PricePerPeriod,
+                        p.Period,
                         p.IsVisible
                     )).ToList()
                 );
@@ -113,6 +114,7 @@ namespace ServiceApi.Application.DTOs.Conversions
                         walkVariant.BreedId,
                         (breedMapping != null && breedMapping.TryGetValue(walkVariant.BreedId, out var name)) ? name : string.Empty,
                         walkVariant.PricePerPeriod,
+                        walkVariant.Period,
                         walkVariant.IsVisible
                     )).ToList() ?? new List<WalkDogServiceVariantDTO>()
                 )).ToList();

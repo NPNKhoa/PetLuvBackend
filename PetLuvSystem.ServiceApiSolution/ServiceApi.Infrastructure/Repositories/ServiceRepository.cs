@@ -5,6 +5,7 @@ using ServiceApi.Application.DTOs.Conversions;
 using ServiceApi.Application.Interfaces;
 using ServiceApi.Domain.Entities;
 using ServiceApi.Infrastructure.Data;
+using System.Globalization;
 using System.Linq.Expressions;
 
 namespace ServiceApi.Infrastructure.Repositories
@@ -125,6 +126,57 @@ namespace ServiceApi.Infrastructure.Repositories
                             pageSize
                         }
                     }
+                };
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
+                return new Response(false, 500, "Internal Server Error");
+            }
+        }
+
+        public async Task<Response> GetAppropriateServices(Guid? breedId, string? petWeight)
+        {
+            try
+            {
+                var query = context.Services
+                    .AsNoTracking()
+                    .Include(s => s.ServiceType)
+                    .Include(s => s.ServiceVariants)
+                    .Include(s => s.ServiceImages)
+                    .Include(s => s.WalkDogServiceVariants)
+                    .Where(s => s.IsVisible);
+
+                if (breedId.HasValue)
+                {
+                    query = query.Where(s =>
+                        s.ServiceVariants!.Any(v => v.BreedId == breedId.Value) ||
+                        s.WalkDogServiceVariants!.Any(w => w.BreedId == breedId.Value)
+                    );
+                }
+
+                var services = await query.ToListAsync();
+
+                if (!string.IsNullOrEmpty(petWeight))
+                {
+                    services = services.Where(s =>
+                        s.ServiceVariants!.Any()
+                            ? s.ServiceVariants!.Any(v => IsWeightInRange(v.PetWeightRange, petWeight))
+                            : s.WalkDogServiceVariants!.Any()
+                    ).ToList();
+                }
+
+                if (!services.Any())
+                {
+                    return new Response(false, 404, "No appropriate services found.");
+                }
+
+                var breedMapping = await _breedMappingClient.GetBreedMappingAsync();
+                var (_, responseData) = ServiceConversion.FromEntity(null, services, breedMapping);
+
+                return new Response(true, 200, "Services retrieved successfully")
+                {
+                    Data = responseData
                 };
             }
             catch (Exception ex)
@@ -302,5 +354,30 @@ namespace ServiceApi.Infrastructure.Repositories
 
             return await query.FirstOrDefaultAsync() ?? null!;
         }
+
+        private bool IsWeightInRange(string? weightRange, string petWeight)
+        {
+            if (string.IsNullOrWhiteSpace(weightRange) || string.IsNullOrWhiteSpace(petWeight))
+                return false;
+
+            var rangeParts = weightRange.Split('-')
+                .Select(p => p.Trim().Replace("kg", "").Replace(" ", ""))
+                .ToList();
+
+            if (rangeParts.Count != 2 ||
+                !decimal.TryParse(rangeParts[0], NumberStyles.Any, CultureInfo.InvariantCulture, out var minWeight) ||
+                !decimal.TryParse(rangeParts[1], NumberStyles.Any, CultureInfo.InvariantCulture, out var maxWeight))
+            {
+                return false;
+            }
+
+            if (!decimal.TryParse(petWeight.Replace("kg", "").Replace(" ", ""), NumberStyles.Any, CultureInfo.InvariantCulture, out var petWeightValue))
+            {
+                return false;
+            }
+
+            return petWeightValue >= minWeight && petWeightValue <= maxWeight;
+        }
+
     }
 }

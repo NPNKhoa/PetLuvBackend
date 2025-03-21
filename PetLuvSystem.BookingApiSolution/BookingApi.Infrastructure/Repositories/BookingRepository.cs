@@ -136,7 +136,7 @@ namespace BookingApi.Infrastructure.Repositories
                     return new PetLuvSystem.SharedLibrary.Responses.Response(false, 400, "Thời gian lịch hẹn không hợp lệ");
                 }
 
-                var existingEntity = await _context.Bookings.FirstOrDefaultAsync(b => b.BookingId == id);
+                var existingEntity = await _context.Bookings.Include(b => b.BookingStatus).Include(b => b.BookingType).FirstOrDefaultAsync(b => b.BookingId == id);
 
                 if (existingEntity is null)
                 {

@@ -15,8 +15,13 @@ namespace ServiceApi.Infrastructure.Repositories
         {
             try
             {
-                var existingVariant = await GetByKeyAsync(entity.ServiceId, entity.BreedId);
-                if (existingVariant.Data != null)
+                var existingVariant = await context.WalkDogServiceVariants.FirstOrDefaultAsync(
+                    v => v.ServiceId == entity.ServiceId
+                        && v.PricePerPeriod == entity.PricePerPeriod
+                        && v.Period == entity.Period
+                );
+
+                if (existingVariant != null)
                 {
                     return new Response(false, 409, "This Service Variant already exists");
                 }

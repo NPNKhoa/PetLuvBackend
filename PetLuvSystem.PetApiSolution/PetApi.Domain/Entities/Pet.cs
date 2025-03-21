@@ -1,4 +1,6 @@
-﻿namespace PetApi.Domain.Entities
+﻿using System.Text.Json.Serialization;
+
+namespace PetApi.Domain.Entities
 {
     public class Pet
     {
@@ -23,6 +25,7 @@
 
         public Guid BreedId { get; set; }
         public virtual PetBreed PetBreed { get; set; }
+        [JsonIgnore]
         public virtual PetHealthBook PetHealthBook { get; set; }
         public Guid? CustomerId { get; set; }
 

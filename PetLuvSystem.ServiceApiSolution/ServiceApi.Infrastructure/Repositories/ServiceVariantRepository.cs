@@ -9,7 +9,7 @@ using System.Linq.Expressions;
 
 namespace ServiceApi.Infrastructure.Repositories
 {
-    public class ServiceVariantRepository(ServiceDbContext context, IServiceVariantCachingService _cacheService) : IServiceVariant
+    public class ServiceVariantRepository(ServiceDbContext context, IServiceVariantCachingService _cacheService, IBreedMappingService _breedMappingClient) : IServiceVariant
     {
         public async Task<Response> CreateAsync(ServiceVariant entity)
         {
@@ -107,7 +107,9 @@ namespace ServiceApi.Infrastructure.Repositories
                     return new Response(false, 404, "Service Variants not found");
                 }
 
-                var (_, responseDatas) = ServiceVariantConversion.FromEntity(null, serviceVariants);
+                var breedMapping = await _breedMappingClient.GetBreedMappingAsync();
+
+                var (_, responseDatas) = ServiceVariantConversion.FromEntity(null, serviceVariants, breedMapping);
 
                 return new Response(true, 200, "Service Variants retrieved successfully")
                 {

@@ -16,7 +16,9 @@ namespace ServiceApi.Presentation.Controllers
     public class ServiceController(IService serviceInterface, IServiceType serviceTypeInterface, IServiceVariant serviceVariantInterface, IWalkDogServiceVariant walkDogServiceVariantInterface, ISchedulerFactory schedulerFactory) : ControllerBase
     {
         [HttpGet]
-        public async Task<IActionResult> GetServices([FromQuery] string? serviceType, [FromQuery] bool? showAll, [FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetServices([FromQuery] string? serviceType, [FromQuery] bool? showAll,
+            [FromQuery] Guid? breedId, [FromQuery] string? petWeight,
+            [FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
@@ -26,7 +28,9 @@ namespace ServiceApi.Presentation.Controllers
                         ? s => s.ServiceType!.ServiceTypeName!.ToLower().Trim().Contains(serviceType.ToLower().Trim())
                         : s => s.IsVisible == true;
 
-                var response = string.IsNullOrEmpty(serviceType) && showAll is null
+                var response = breedId is not null && petWeight is not null
+                    ? await serviceInterface.GetAppropriateServices(breedId, petWeight)
+                    : string.IsNullOrEmpty(serviceType) && showAll is null
                     ? await serviceInterface.GetAllAsync(pageIndex, pageSize)
                     : await serviceInterface.GetByAsync(predicate, true);
 

@@ -12,11 +12,14 @@ namespace BookingApi.Presentation.Controllers
     public class BookingTypeController(IBookingType _bookingType) : ControllerBase
     {
         [HttpGet]
-        public async Task<IActionResult> GetAllBookingTypes([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetAllBookingTypes([FromQuery] string? typeName, [FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
-                var response = await _bookingType.GetAllAsync(pageIndex, pageSize);
+                var response = string.IsNullOrEmpty(typeName)
+                    ? await _bookingType.GetAllAsync(pageIndex, pageSize)
+                    : await _bookingType.GetByAsync(b => b.BookingTypeName.ToLower().Contains(typeName.Trim().ToLower()));
+
                 return response.ToActionResult(this);
             }
             catch (Exception ex)
