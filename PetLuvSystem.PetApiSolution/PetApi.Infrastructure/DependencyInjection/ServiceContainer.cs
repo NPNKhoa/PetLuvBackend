@@ -25,6 +25,7 @@ namespace PetApi.Infrastructure.DependencyInjection
             services.AddScoped<IPetType, PetTypeRepository>();
             services.AddScoped<IPet, PetRepository>();
             services.AddScoped<ISellingPet, SellingPetRepository>();
+            services.AddScoped<IStatistic, StatRepository>();
 
             services.AddSingleton<IRedisCacheService, RedisCacheService>();
             services.AddScoped<IPetCachingService, PetCachingService>();

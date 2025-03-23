@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace ServiceApi.Domain.Entities
 {
@@ -14,6 +15,7 @@ namespace ServiceApi.Domain.Entities
         public ServiceType? ServiceType { get; set; }
 
         public ICollection<ServiceImage>? ServiceImages { get; set; }
+        [JsonIgnore]
         public virtual ICollection<ServiceComboMapping>? ServiceComboMappings { get; set; }
         public virtual ICollection<ServiceVariant>? ServiceVariants { get; set; }
         public virtual ICollection<WalkDogServiceVariant>? WalkDogServiceVariants { get; set; }

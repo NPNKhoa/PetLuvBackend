@@ -33,6 +33,7 @@ namespace ServiceApi.Infrastructure.DependencyInjection
             services.AddScoped<IBreedMappingService, BreedMappingService>();
             services.AddScoped<IServiceVariantCachingService, ServiceVariantCachingService>();
             services.AddScoped<IServiceComboCachingService, ServiceComboCachingService>();
+            services.AddScoped<IServiceMappingCaching, ServiceMappingCachingService>();
 
             services.AddQuartz(q =>
             {

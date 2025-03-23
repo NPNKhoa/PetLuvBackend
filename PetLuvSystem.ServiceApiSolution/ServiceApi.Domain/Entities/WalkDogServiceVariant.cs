@@ -1,4 +1,6 @@
-﻿namespace ServiceApi.Domain.Entities
+﻿using System.Text.Json.Serialization;
+
+namespace ServiceApi.Domain.Entities
 {
     public class WalkDogServiceVariant
     {
@@ -8,6 +10,7 @@
         public int Period { get; set; }
         public bool IsVisible { get; set; }
 
+        [JsonIgnore]
         public virtual Service? Service { get; set; }
     }
 }

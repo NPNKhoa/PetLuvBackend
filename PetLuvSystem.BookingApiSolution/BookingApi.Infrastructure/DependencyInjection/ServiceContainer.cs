@@ -20,6 +20,8 @@ namespace BookingApi.Infrastructure.DependencyInjection
             services.AddScoped<IBookingStatus, BookingStatusRepository>();
             services.AddScoped<IBookingType, BookingTypeRepository>();
 
+            services.AddScoped<IStatistic, StatisticRepository>();
+
             services.AddHttpClient();
 
             services.AddSingleton<IRedisCacheService, RedisCacheService>();
@@ -29,6 +31,7 @@ namespace BookingApi.Infrastructure.DependencyInjection
             services.AddScoped<ICheckPaymentStatusService, CheckPaymentStatusService>();
             services.AddScoped<IRoomService, RoomService>();
             services.AddScoped<IServiceService, ServiceService>();
+            services.AddScoped<IBreedMappingService, BreedMappingService>();
 
             services.AddMassTransit(x =>
             {

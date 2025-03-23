@@ -15,6 +15,7 @@ namespace BookingApi.Infrastructure.Services
         private const string CacheKey = "ServiceService";
         private const string WDCacheKey = "walkDogService";
         private const string ComboServiceCacheKey = "ComboService";
+        private const string ServiceMappingKey = "ServiceMapping";
         private readonly TimeSpan CacheExpiry = TimeSpan.FromHours(24);
 
         public ServiceService(IHttpClientFactory httpClientFactory, IRedisCacheService cacheService, IConfiguration configuration)
@@ -23,6 +24,72 @@ namespace BookingApi.Infrastructure.Services
             _cacheService = cacheService;
             _configuration = configuration;
         }
+
+        public async Task<Dictionary<Guid, string>> GetServiceMappings(List<Guid> serviceIds)
+        {
+            var cacheData = await _cacheService.GetCachedValueAsync(ServiceMappingKey);
+            Dictionary<Guid, string> serviceMappings = new();
+
+            if (cacheData is not null)
+            {
+                LogException.LogInformation("[Booking Service] Fetching Service Mapping From Cache");
+
+                var cachedServices = JsonSerializer.Deserialize<List<ServiceMappingDTO>>(cacheData);
+                if (cachedServices is not null)
+                {
+                    serviceMappings = cachedServices.ToDictionary(s => s.ServiceId, s => s.ServiceName);
+                }
+
+                // Check if all services exist in the cache
+                if (serviceIds.All(id => serviceMappings.ContainsKey(id)))
+                {
+                    return serviceMappings;
+                }
+            }
+
+            // Services missing from cache, fetch from API
+            var serviceServiceUrl = _configuration["ExternalServices:ServiceServiceUrl"];
+            if (string.IsNullOrEmpty(serviceServiceUrl))
+            {
+                LogException.LogError("Service Service URL is not configured.");
+                return serviceMappings;
+            }
+
+            var client = _httpClientFactory.CreateClient();
+            var response = await client.GetAsync($"{serviceServiceUrl}services");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                LogException.LogError($"Failed to fetch service names. Status code: {response.StatusCode}");
+                return serviceMappings;
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+
+            var jsonNode = JsonNode.Parse(json);
+            var servicesJson = jsonNode?["data"]?["data"]?.ToJsonString();
+
+            if (string.IsNullOrEmpty(servicesJson))
+            {
+                LogException.LogError("Failed to extract 'data' field from API response.");
+                return serviceMappings;
+            }
+
+            var services = JsonSerializer.Deserialize<List<ServiceMappingDTO>>(servicesJson, options);
+            if (services == null || !services.Any())
+            {
+                LogException.LogError("Failed to deserialize service data.");
+                return serviceMappings;
+            }
+
+            // Update Cache with new data
+            await _cacheService.SetCachedValueAsync(ServiceMappingKey, JsonSerializer.Serialize(services), CacheExpiry);
+            LogException.LogInformation("Service list cached in Redis.");
+
+            return services.ToDictionary(s => s.ServiceId, s => s.ServiceName);
+        }
+
 
         public async Task<ServiceVariantDTO?> GetServiceVariantByKey(Guid serviceId, Guid breedId, string petWeightRange)
         {

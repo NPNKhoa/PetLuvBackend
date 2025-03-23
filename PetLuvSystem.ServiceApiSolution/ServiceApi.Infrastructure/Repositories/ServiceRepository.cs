@@ -10,7 +10,7 @@ using System.Linq.Expressions;
 
 namespace ServiceApi.Infrastructure.Repositories
 {
-    public class ServiceRepository(ServiceDbContext context, IBreedMappingService _breedMappingClient) : IService
+    public class ServiceRepository(ServiceDbContext context, IBreedMappingService _breedMappingClient, IServiceMappingCaching _serviceMappingCache) : IService
     {
         public async Task<Response> CreateAsync(Service entity)
         {
@@ -25,6 +25,9 @@ namespace ServiceApi.Infrastructure.Repositories
 
                 var createdService = await context.Services.AddAsync(entity) ?? throw new Exception("Failed to create service");
                 await context.SaveChangesAsync();
+
+                var services = await context.Services.ToListAsync();
+                _serviceMappingCache.UpdateCacheAsync(services);
 
                 var (responseData, _) = ServiceConversion.FromEntity(entity, null);
 
@@ -74,6 +77,9 @@ namespace ServiceApi.Infrastructure.Repositories
                 var deletedService = context.Services.Remove(existingService) ?? throw new Exception("Fail to delete service");
                 await context.SaveChangesAsync();
 
+                var services = await context.Services.ToListAsync();
+                _serviceMappingCache.UpdateCacheAsync(services);
+
                 var (response, _) = ServiceConversion.FromEntity(existingService, null!);
 
                 return new Response(false, 200, $"Service with id {id} was permanently deleted")
@@ -111,6 +117,9 @@ namespace ServiceApi.Infrastructure.Repositories
                 }
 
                 var breedMapping = await _breedMappingClient.GetBreedMappingAsync();
+
+                //var services = await context.Services.ToListAsync();
+                //_serviceMappingCache.UpdateCacheAsync(services);
 
                 var (_, responseData) = ServiceConversion.FromEntity(null, services, breedMapping);
 
@@ -318,6 +327,9 @@ namespace ServiceApi.Infrastructure.Repositories
                 {
                     await context.SaveChangesAsync();
                 }
+
+                var services = await context.Services.ToListAsync();
+                _serviceMappingCache.UpdateCacheAsync(services);
 
                 var (resposneData, _) = ServiceConversion.FromEntity(existingService, null);
 

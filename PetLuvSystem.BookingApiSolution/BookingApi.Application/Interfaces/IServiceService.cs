@@ -6,5 +6,6 @@ namespace BookingApi.Application.Interfaces
     {
         public Task<ServiceVariantDTO?> GetServiceVariantByKey(Guid serviceId, Guid BreedId, string PetWeightRange);
         public Task<ServiceComboVariant?> GetServiceComboVariantByKey(Guid serviceId, Guid BreedId, string PetWeightRange);
+        public Task<Dictionary<Guid, string>> GetServiceMappings(List<Guid> serviceIds);
     }
 }

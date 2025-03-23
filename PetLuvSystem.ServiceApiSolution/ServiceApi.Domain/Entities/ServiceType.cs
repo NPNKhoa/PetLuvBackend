@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace ServiceApi.Domain.Entities
 {
@@ -10,6 +11,7 @@ namespace ServiceApi.Domain.Entities
         public string? ServiceTypeDesc { get; set; }
         public bool IsVisible { get; set; }
 
+        [JsonIgnore]
         public virtual ICollection<Service>? Services { get; set; }
     }
 }

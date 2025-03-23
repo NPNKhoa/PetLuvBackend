@@ -1,4 +1,6 @@
-﻿namespace ServiceApi.Domain.Entities
+﻿using System.Text.Json.Serialization;
+
+namespace ServiceApi.Domain.Entities
 {
     public class ServiceVariant
     {
@@ -9,6 +11,7 @@
         public int EstimateTime { get; set; }
         public bool IsVisible { get; set; }
 
+        [JsonIgnore]
         public virtual Service? Service { get; set; }
     }
 }
