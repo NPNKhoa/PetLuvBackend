@@ -31,6 +31,18 @@ namespace PetApi.Application.DTOs.Conversions
             HealthBookId = dto.HealthBookId
         };
 
+        public static PetHealthBookDetail ToEntity(UpdatePetHealthBookDetailDTO dto, string treatmaneProofPath, string vetDegreeProofPath) => new()
+        {
+            HealthBookDetailId = Guid.NewGuid(),
+            PetHealthNote = dto.PetHealthNote,
+            TreatmentName = dto.TreatmentName,
+            TreatmentDesc = dto.TreatmentDesc!,
+            TreatmentProof = treatmaneProofPath,
+            VetName = dto.VetName,
+            VetDegree = vetDegreeProofPath,
+            UpdatedDate = dto.UpdatedDate,
+        };
+
         public static (PetHealthBookDetailDTO?, IEnumerable<PetHealthBookDetailDTO>?) FromEntity(PetHealthBookDetail? entity, IEnumerable<PetHealthBookDetail> entities)
         {
 

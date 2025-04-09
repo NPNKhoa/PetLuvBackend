@@ -79,7 +79,7 @@ namespace PetApi.Application.DTOs.Conversions
                         cm.PetImagePaths?.First().PetImagePath,
                         cm.IsVisible
                     )).ToList() : new List<BriefPetDTO>(),
-                    entity?.ChildrenFromFather is not null ? entity.ChildrenFromFather.Select(cm => new BriefPetDTO(
+                    entity.ChildrenFromFather is not null ? entity.ChildrenFromFather.Select(cm => new BriefPetDTO(
                         cm.PetId,
                         cm.PetName,
                         cm.PetImagePaths?.First().PetImagePath,
@@ -128,7 +128,7 @@ namespace PetApi.Application.DTOs.Conversions
                         string.Empty,
                         cm.IsVisible
                     )).ToList() : new List<BriefPetDTO>(),
-                    p?.ChildrenFromFather is not null ? p.ChildrenFromFather.Select(cm => new BriefPetDTO(
+                    p.ChildrenFromFather is not null ? p.ChildrenFromFather.Select(cm => new BriefPetDTO(
                         cm.PetId,
                         cm.PetName,
                         string.Empty,

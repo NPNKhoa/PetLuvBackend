@@ -7,9 +7,9 @@ namespace PetApi.Application.DTOs.PetHealthBookDetailDTOs
         string PetHealthNote,
         string TreatmentName,
         string? TreatmentDesc,
-        IFormFile TreatmentProof,
+        IFormFile? TreatmentProof,
         string VetName,
-        IFormFile VetDegree,
+        IFormFile? VetDegree,
         DateTime UpdatedDate,
         Guid HealthBookId
     );

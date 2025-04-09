@@ -119,13 +119,6 @@ namespace PetApi.Presentation.Controllers
 
             try
             {
-                var existingPet = await _pet.FindById(id);
-
-                if (existingPet is null)
-                {
-                    return BadRequest(new Response(false, 400, "Can not find any pet with this id"));
-                }
-
                 var entity = PetConversion.ToEntity(dto);
                 entity.PetId = id;
 
@@ -153,12 +146,87 @@ namespace PetApi.Presentation.Controllers
             }
         }
 
+        [HttpPut("{id}/images")]
+        public async Task<IActionResult> UpdatePetImages(Guid id, [FromForm] IFormFileCollection imageFiles)
+        {
+            if (!ModelState.IsValid)
+            {
+                string errorMessages = string.Join("; ", ModelState.Values
+                    .SelectMany(x => x.Errors)
+                    .Select(x => x.ErrorMessage));
+
+                return BadRequest(new Response(false, 400, errorMessages));
+            }
+
+            try
+            {
+                ICollection<string> imagePaths = new List<string>();
+
+                if (imageFiles is not null)
+                {
+                    foreach (var imageFile in imageFiles)
+                    {
+                        if (imageFile.Length > 0 && imageFile.ContentType.StartsWith("image/"))
+                        {
+                            imagePaths.Add(await CloudinaryHelper.UploadImageToCloudinary(imageFile, "UserPet"));
+                        }
+                    }
+                }
+
+                var response = await _pet.UpadteImages(id, imagePaths);
+                return response.ToActionResult(this);
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
+                return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error");
+            }
+        }
+
+        [HttpPut("{id}/family")]
+        public async Task<IActionResult> UpdatePetFamily(Guid id, [FromBody] UpdatePetFamilyDTO entity)
+        {
+            if (!ModelState.IsValid)
+            {
+                string errorMessages = string.Join("; ", ModelState.Values
+                    .SelectMany(x => x.Errors)
+                    .Select(x => x.ErrorMessage));
+
+                return BadRequest(new Response(false, 400, errorMessages));
+            }
+
+            try
+            {
+                return (await _pet.UpdateFamAsync(id, entity)).ToActionResult(this);
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
+                return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error");
+            }
+        }
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePet(Guid id)
         {
             try
             {
                 var response = await _pet.DeleteAsync(id);
+                return response.ToActionResult(this);
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
+                return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error");
+            }
+        }
+
+        [HttpDelete("{id}/image")]
+        public async Task<IActionResult> DeletePet([FromRoute] Guid id, [FromQuery] string imagePath)
+        {
+            try
+            {
+                var response = await _pet.DeleteImage(id, imagePath);
                 return response.ToActionResult(this);
             }
             catch (Exception ex)

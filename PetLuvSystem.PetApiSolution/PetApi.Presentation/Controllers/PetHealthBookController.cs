@@ -10,17 +10,24 @@ namespace PetApi.Presentation.Controllers
 {
     [Route("api/pet-health-books")]
     [ApiController]
-    public class PetHealthBookController(IPetHealthBookDetail _petHealthBookDetail) : ControllerBase
+    public class PetHealthBookController(IPetHealthBookDetail _petHealthBookDetail, IPetHealthBook _petHealthBook) : ControllerBase
     {
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetPetHealthBookDetailByHealthBook(Guid id, [FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetPetHealthBookById(Guid id)
+        {
+            var response = await _petHealthBook.GetByIdAsync(id);
+            return response.ToActionResult(this);
+        }
+
+        [HttpGet("{id}/detail")]
+        public async Task<IActionResult> GetPetHealthBookDetailByHealthBook(Guid id)
         {
             var response = await _petHealthBookDetail.GetByHealthBook(id);
             return response.ToActionResult(this);
         }
 
-        [HttpGet("/api/pet-health-books/detail/{id}")]
-        public async Task<IActionResult> GetPetHealthBookDetailById(Guid id)
+        [HttpGet("/api/health-book-detail/{id}")]
+        public async Task<IActionResult> GetPetHealthBookDetail(Guid id)
         {
             var response = await _petHealthBookDetail.GetByIdAsync(id);
             return response.ToActionResult(this);
@@ -94,12 +101,12 @@ namespace PetApi.Presentation.Controllers
                 string proofPath = petHealthBookDetail.TreatmentProof;
                 string vetDegreePath = petHealthBookDetail.VetDegree;
 
-                if (dto.TreatmentProof is not null)
+                if (dto.TreatmentProof is not null && dto.TreatmentProof is FormFile)
                 {
                     proofPath = await CloudinaryHelper.UploadImageToCloudinary(dto.TreatmentProof, "PetHealthBooks");
                 }
 
-                if (dto.VetDegree is not null)
+                if (dto.VetDegree is not null && dto.VetDegree is FormFile)
                 {
                     vetDegreePath = await CloudinaryHelper.UploadImageToCloudinary(dto.VetDegree, "PetHealthBooks");
                 }

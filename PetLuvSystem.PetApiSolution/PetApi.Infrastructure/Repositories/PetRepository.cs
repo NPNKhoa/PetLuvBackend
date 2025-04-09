@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PetApi.Application.DTOs.Conversions;
+using PetApi.Application.DTOs.PetDTOs;
 using PetApi.Application.Interfaces;
 using PetApi.Domain.Entities;
 using PetApi.Infrastructure.Data;
@@ -44,10 +45,10 @@ namespace PetApi.Infrastructure.Repositories
 
                     await transaction.CommitAsync();
 
-                    var pets = await _context.Pets.ToListAsync();
+                    var pets = await _context.Pets.Include(p => p.PetBreed).ThenInclude(p => p.PetType).ToListAsync();
                     await _cacheService.UpdateCache(pets);
 
-                    var (responseData, _) = PetConversion.FromEntity(entity, null);
+                    var (responseData, _) = PetConversion.FromEntity(pets.FirstOrDefault(p => p.PetId == entity.PetId), null);
 
                     return new Response(true, 201, "Pet created successfully!")
                     {
@@ -249,14 +250,14 @@ namespace PetApi.Infrastructure.Repositories
 
                 var existingMother = await _context.Pets.FindAsync(entity.MotherId);
 
-                if (existingMother is null || existingMother.IsVisible == false)
+                if (entity.MotherId != Guid.Empty && entity.MotherId != null && (existingMother is null || existingMother.IsVisible == false))
                 {
                     return new Response(false, 404, "Thú cưng này không tồn tại hoặc đã bị xóa");
                 }
 
                 var existingFather = await _context.Pets.FindAsync(entity.FatherId);
 
-                if (existingFather is null || existingFather.IsVisible == false)
+                if (entity.FatherId != Guid.Empty && entity.FatherId != null && (existingFather is null || existingFather.IsVisible == false))
                 {
                     return new Response(false, 404, "Thú cưng này không tồn tại hoặc đã bị xóa");
                 }
@@ -285,12 +286,8 @@ namespace PetApi.Infrastructure.Repositories
                     entity.PetFurColor != existingPet.PetFurColor ||
                     entity.PetWeight != existingPet.PetWeight ||
                     entity.PetDesc != existingPet.PetDesc ||
-                    entity.PetFamilyRole != existingPet.PetFamilyRole ||
                     entity.IsVisible != existingPet.IsVisible ||
-                    entity.MotherId != existingPet.MotherId ||
-                    entity.FatherId != existingPet.FatherId ||
-                    entity.BreedId != existingPet.BreedId ||
-                    entity.CustomerId != existingPet.CustomerId;
+                    entity.BreedId != existingPet.BreedId;
 
                 if (!hasChanges)
                 {
@@ -303,12 +300,8 @@ namespace PetApi.Infrastructure.Repositories
                 existingPet.PetFurColor = entity.PetFurColor;
                 existingPet.PetWeight = entity.PetWeight;
                 existingPet.PetDesc = entity.PetDesc;
-                existingPet.PetFamilyRole = entity.PetFamilyRole;
                 existingPet.IsVisible = entity.IsVisible;
-                existingPet.MotherId = entity.MotherId;
-                existingPet.FatherId = entity.FatherId;
                 existingPet.BreedId = entity.BreedId;
-                existingPet.CustomerId = entity.CustomerId;
 
                 await _context.SaveChangesAsync();
 
@@ -316,6 +309,187 @@ namespace PetApi.Infrastructure.Repositories
                 await _cacheService.UpdateCache(pets);
 
                 var (responseData, _) = PetConversion.FromEntity(existingPet, null);
+
+                return new Response(true, 200, "Pet updated successfully")
+                {
+                    Data = responseData
+                };
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
+                return new Response(false, 500, "Internal Server Error");
+            }
+        }
+
+        public async Task<Response> UpdateFamAsync(Guid id, UpdatePetFamilyDTO entity)
+        {
+            try
+            {
+                var existingPet = await FindById(id);
+
+                if (existingPet is null)
+                {
+                    return new Response(false, 404, "Thú cưng này đã bị xóa hoặc không tồn tại");
+                }
+
+                var existingMother = await _context.Pets.FindAsync(entity.MotherId);
+
+                if (entity.MotherId != Guid.Empty && entity.MotherId != null)
+                {
+                    if (existingMother is null || existingMother.IsVisible == false)
+                    {
+                        return new Response(false, 404, "Thú cưng này không tồn tại hoặc đã bị xóa");
+
+                    }
+
+                    existingPet.MotherId = entity.MotherId ?? existingPet.MotherId;
+                }
+
+                var existingFather = await _context.Pets.FindAsync(entity.FatherId);
+
+                if (entity.FatherId != Guid.Empty && entity.FatherId != null)
+                {
+                    if (existingFather is null || existingFather.IsVisible == false)
+                    {
+                        return new Response(false, 404, "Thú cưng này không tồn tại hoặc đã bị xóa");
+                    }
+
+                    existingPet.FatherId = entity.FatherId ?? existingPet.FatherId;
+                }
+
+                if (entity.ChildrenIds is not null && entity.ChildrenIds.Count > 0)
+                {
+                    LogException.LogInformation("PetFamilyRole: " + entity.PetFamilyRole);
+                    if (entity.PetFamilyRole.ToLower().Contains("cha"))
+                    {
+                        if (existingPet.ChildrenFromFather is not null && existingPet.ChildrenFromFather.Count > 0)
+                        {
+                            existingPet.ChildrenFromFather = _context.Pets
+                                .Where(p => entity.ChildrenIds.Contains(p.PetId))
+                                .ToList();
+
+
+                        }
+                        {
+                            existingPet.ChildrenFromFather = new List<Pet>();
+                        }
+                        existingPet.PetFamilyRole = "Cha";
+                    }
+                    else
+                    {
+                        if (existingPet.ChildrenFromMother is not null && existingPet.ChildrenFromMother.Count > 0)
+                        {
+                            existingPet.ChildrenFromMother = _context.Pets
+                                .Where(p => entity.ChildrenIds.Contains(p.PetId))
+                                .ToList();
+                        }
+                        {
+                            existingPet.ChildrenFromMother = new List<Pet>();
+                        }
+                        existingPet.PetFamilyRole = "Mẹ";
+                    }
+                }
+
+
+                await _context.SaveChangesAsync();
+
+                var pets = await _context.Pets.ToListAsync();
+                await _cacheService.UpdateCache(pets);
+
+                var (responseData, _) = PetConversion.FromEntity(existingPet, null);
+
+                return new Response(true, 200, "Cập nhật thú cưng thành công")
+                {
+                    Data = responseData
+                };
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
+                return new Response(false, 500, "Internal Server Error");
+            }
+        }
+
+        public async Task<Response> UpadteImages(Guid petId, ICollection<string> imagePath)
+        {
+            try
+            {
+                if (imagePath is null || imagePath.Count == 0)
+                {
+                    return new Response(false, 400, "Ảnh không được để trống");
+                }
+
+                var existingPet = await FindById(petId);
+
+                if (existingPet is null)
+                {
+                    return new Response(false, 404, "Thú cưng không tồn tại hoặc đã bị xóa");
+                }
+
+                if (existingPet.PetImagePaths is null || existingPet.PetImagePaths.Count > 0)
+                {
+                    existingPet.PetImagePaths = imagePath.Select(ip => new PetImage
+                    {
+                        PetId = petId,
+                        PetImagePath = ip
+                    }).ToList();
+                }
+                else
+                {
+
+                    foreach (var path in imagePath)
+                    {
+                        existingPet.PetImagePaths.Add(new PetImage
+                        {
+                            PetId = petId,
+                            PetImagePath = path
+                        });
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+
+                var pets = await _context.Pets.ToListAsync();
+                await _cacheService.UpdateCache(pets);
+
+                var (responseData, _) = PetConversion.FromEntity(existingPet, null);
+
+                return new Response(true, 200, "Pet updated successfully")
+                {
+                    Data = responseData
+                };
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
+                return new Response(false, 500, "Internal Server Error");
+            }
+        }
+
+        public async Task<Response> DeleteImage(Guid petId, string imagePath)
+        {
+            try
+            {
+                if (imagePath is null)
+                {
+                    return new Response(false, 204, "No Changes");
+                }
+
+                var deleteImage = await _context.PetImages.FirstOrDefaultAsync(pi => pi.PetId == petId && pi.PetImagePath == imagePath);
+
+                if (deleteImage is null)
+                {
+                    return new Response(false, 404, "Không tìm thấy ảnh yêu cầu");
+                }
+
+                _context.PetImages.Remove(deleteImage);
+                await _context.SaveChangesAsync();
+
+                var pets = await _context.Pets.ToListAsync();
+                await _cacheService.UpdateCache(pets);
+
+                var (responseData, _) = PetConversion.FromEntity(await FindById(petId, true, true), null);
 
                 return new Response(true, 200, "Pet updated successfully")
                 {

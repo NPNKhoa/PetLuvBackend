@@ -2,6 +2,7 @@
 using PetApi.Application.DTOs.Conversions;
 using PetApi.Application.DTOs.PetBreedDTOs;
 using PetApi.Application.Interfaces;
+using PetLuvSystem.SharedLibrary.Helpers.CloudinaryHelper;
 using PetLuvSystem.SharedLibrary.Logs;
 using PetLuvSystem.SharedLibrary.Responses;
 
@@ -102,7 +103,7 @@ namespace PetApi.Presentation.Controllers
 
                 if (dto.IllustrationImage is not null)
                 {
-                    illustrationImage = await HandleUploadImage(dto.IllustrationImage);
+                    illustrationImage = await CloudinaryHelper.UploadImageToCloudinary(dto.IllustrationImage, "PetBreed");
                 }
 
                 var entity = PetBreedConversion.ToEntity(dto, illustrationImage);
@@ -135,7 +136,7 @@ namespace PetApi.Presentation.Controllers
 
                 if (dto.IllustrationImage is not null)
                 {
-                    illustrationImage = await HandleUploadImage(dto.IllustrationImage);
+                    illustrationImage = await CloudinaryHelper.UploadImageToCloudinary(dto.IllustrationImage, "PetBreed");
                 }
 
                 var entity = PetBreedConversion.ToEntity(dto, illustrationImage);

@@ -109,6 +109,15 @@ namespace PetApi.Infrastructure.Repositories
         {
             try
             {
+                if (id != Guid.Empty)
+                {
+                    LogException.LogInformation("id ne: " + id.ToString());
+                }
+                else
+                {
+                    LogException.LogInformation("Id rong roi");
+                }
+
                 var petHealthBookDetails = await _context.PetHealthBookDetails
                     .Where(x => x.HealthBookId == id)
                     .OrderByDescending(x => x.UpdatedDate)
@@ -195,9 +204,52 @@ namespace PetApi.Infrastructure.Repositories
             }
         }
 
-        public Task<Response> UpdateAsync(Guid id, PetHealthBookDetail entity)
+        public async Task<Response> UpdateAsync(Guid id, PetHealthBookDetail entity)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var petHealthBookDetail = await FindById(id, true, true);
+
+                if (petHealthBookDetail is null)
+                {
+                    return new Response(false, 404, "Không tìm thấy chi tiết sổ sức khỏe thú cưng");
+                }
+
+                bool hasChanges = entity.PetHealthNote != petHealthBookDetail.PetHealthNote
+                        || entity.TreatmentName != petHealthBookDetail.TreatmentName
+                        || entity.TreatmentDesc != petHealthBookDetail.TreatmentDesc
+                        || entity.TreatmentProof != petHealthBookDetail.TreatmentProof
+                        || entity.VetName != petHealthBookDetail.VetName
+                        || entity.VetDegree != petHealthBookDetail.VetDegree
+                        || entity.UpdatedDate != petHealthBookDetail.UpdatedDate;
+
+                if (!hasChanges)
+                {
+                    return new Response(true, 204, "No Change made");
+                }
+
+                petHealthBookDetail.PetHealthNote = entity.PetHealthNote;
+                petHealthBookDetail.TreatmentName = entity.TreatmentName;
+                petHealthBookDetail.TreatmentDesc = entity.TreatmentDesc;
+                petHealthBookDetail.TreatmentProof = entity.TreatmentProof;
+                petHealthBookDetail.VetName = entity.VetName;
+                petHealthBookDetail.VetDegree = entity.VetDegree;
+                petHealthBookDetail.UpdatedDate = entity.UpdatedDate;
+
+                await _context.SaveChangesAsync();
+
+                var (response, _) = PetHealthBookDetailConversion.FromEntity(petHealthBookDetail, null!);
+
+                return new Response(true, 200, "Updated")
+                {
+                    Data = response
+                };
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
+                return new Response(false, 500, "Internal Server Error");
+            }
         }
 
         public async Task<PetHealthBookDetail> FindById(Guid id, bool noTracking = false, bool includeOthers = false)
