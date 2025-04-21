@@ -14,7 +14,7 @@ namespace PetApi.Presentation.Controllers
     public class PetController(IPet _pet, IPetBreed _petBreed) : ControllerBase
     {
         [HttpGet]
-        public async Task<IActionResult> GetAllPets([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetAllPets([FromQuery] int? pageIndex, [FromQuery] int? pageSize)
         {
             try
             {

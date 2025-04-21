@@ -8,5 +8,6 @@ namespace BookingApi.Application.Interfaces
     {
         public Task<Booking> FindById(Guid id, bool noTracking = false, bool includeOthers = false);
         public Task<Response> ValidateBookingCreation(Booking entity);
+        public Task<Response> GetBookingHistory(Guid userId);
     }
 }

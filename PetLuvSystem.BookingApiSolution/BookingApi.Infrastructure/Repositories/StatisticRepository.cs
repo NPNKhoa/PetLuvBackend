@@ -6,68 +6,173 @@ using PetLuvSystem.SharedLibrary.Responses;
 
 namespace BookingApi.Infrastructure.Repositories
 {
-    public class StatisticRepository(BookingDbContext _context, IServiceService _serviceCacheService, IBreedMappingService _breedMappingService) : IStatistic
+    public class StatisticRepository(BookingDbContext _context, IServiceService _serviceCacheService, IRoomService _roomService, IBreedMappingService _breedMappingService) : IStatistic
     {
-        public async Task<Response> GetServicesBookedAsync(DateTime? startDate, DateTime? endDate, int? month, int? year)
+        public async Task<Response> GetServicesBookedAsync(DateTime? startDate, DateTime? endDate, int? month, int? year, string serviceType = "service")
         {
             try
             {
-                var query = _context.ServiceBookingDetails
-                    .Where(sbd => sbd.Booking != null)
-                    .AsQueryable();
+                var type = serviceType.Trim().ToLower();
 
-                if (startDate.HasValue && endDate.HasValue)
+                if (type.Contains("service"))
                 {
-                    query = query.Where(sbd =>
-                        sbd.Booking.BookingStartTime.Date >= startDate.Value.Date && sbd.Booking.BookingStartTime.Date <= endDate.Value.Date ||
-                        sbd.Booking.BookingEndTime.Date >= startDate.Value.Date && sbd.Booking.BookingEndTime.Date <= endDate.Value.Date);
-                }
-                else if (startDate.HasValue)
-                {
-                    query = query.Where(sbd =>
-                        sbd.Booking.BookingStartTime.Date == startDate.Value.Date ||
-                        sbd.Booking.BookingEndTime.Date == startDate.Value.Date);
-                }
+                    var query = _context.ServiceBookingDetails
+                        .Where(sbd => sbd.Booking != null)
+                        .AsQueryable();
 
-                if (month.HasValue)
-                {
-                    query = query.Where(sbd =>
-                        sbd.Booking.BookingStartTime.Month == month.Value ||
-                        sbd.Booking.BookingEndTime.Month == month.Value);
-                }
-
-                if (year.HasValue)
-                {
-                    query = query.Where(sbd =>
-                        sbd.Booking.BookingStartTime.Year == year.Value ||
-                        sbd.Booking.BookingEndTime.Year == year.Value);
-                }
-
-                var bookingServiceStats = await query
-                    .GroupBy(sbd => sbd.ServiceId)
-                    .Select(g => new
+                    if (startDate.HasValue && endDate.HasValue)
                     {
-                        ServiceId = g.Key,
-                        Count = g.Count()
-                    })
-                    .ToListAsync();
+                        query = query.Where(sbd =>
+                            sbd.Booking.BookingStartTime.Date >= startDate.Value.Date && sbd.Booking.BookingStartTime.Date <= endDate.Value.Date ||
+                            sbd.Booking.BookingEndTime.Date >= startDate.Value.Date && sbd.Booking.BookingEndTime.Date <= endDate.Value.Date);
+                    }
+                    else if (startDate.HasValue)
+                    {
+                        query = query.Where(sbd =>
+                            sbd.Booking.BookingStartTime.Date == startDate.Value.Date ||
+                            sbd.Booking.BookingEndTime.Date == startDate.Value.Date);
+                    }
 
-                if (!bookingServiceStats.Any())
-                {
-                    return new Response(false, 404, "Không tìm thấy booking nào");
+                    if (month.HasValue)
+                    {
+                        query = query.Where(sbd =>
+                            sbd.Booking.BookingStartTime.Month == month.Value ||
+                            sbd.Booking.BookingEndTime.Month == month.Value);
+                    }
+
+                    if (year.HasValue)
+                    {
+                        query = query.Where(sbd =>
+                            sbd.Booking.BookingStartTime.Year == year.Value ||
+                            sbd.Booking.BookingEndTime.Year == year.Value);
+                    }
+
+                    var stats = await query
+                        .GroupBy(sbd => sbd.ServiceId)
+                        .Select(g => new { Id = g.Key, Count = g.Count() })
+                        .ToListAsync();
+
+                    if (!stats.Any())
+                        return new Response(false, 404, "Không tìm thấy booking nào");
+
+                    var ids = stats.Select(x => x.Id).ToList();
+                    var mappings = await _serviceCacheService.GetServiceMappings(ids);
+
+                    var result = stats.Select(s => new
+                    {
+                        ServiceId = s.Id,
+                        ServiceName = mappings.TryGetValue(s.Id, out var name) ? name : "N/A",
+                        s.Count
+                    }).ToList();
+
+                    return new Response(true, 200, "OK") { Data = result };
                 }
-
-                var serviceIds = bookingServiceStats.Select(s => s.ServiceId).Distinct().ToList();
-                var serviceMappings = await _serviceCacheService.GetServiceMappings(serviceIds);
-
-                var result = bookingServiceStats.Select(s => new
+                else if (type.Contains("combo"))
                 {
-                    s.ServiceId,
-                    ServiceName = serviceMappings.TryGetValue(s.ServiceId, out var name) ? name : "N/A",
-                    s.Count
-                }).ToList();
+                    var query = _context.ServiceComboBookingDetails
+                        .Where(scbd => scbd.Booking != null)
+                        .AsQueryable();
 
-                return new Response(true, 200, "OK") { Data = result };
+                    if (startDate.HasValue && endDate.HasValue)
+                    {
+                        query = query.Where(scbd =>
+                            scbd.Booking.BookingStartTime.Date >= startDate.Value.Date && scbd.Booking.BookingStartTime.Date <= endDate.Value.Date ||
+                            scbd.Booking.BookingEndTime.Date >= startDate.Value.Date && scbd.Booking.BookingEndTime.Date <= endDate.Value.Date);
+                    }
+                    else if (startDate.HasValue)
+                    {
+                        query = query.Where(scbd =>
+                            scbd.Booking.BookingStartTime.Date == startDate.Value.Date ||
+                            scbd.Booking.BookingEndTime.Date == startDate.Value.Date);
+                    }
+
+                    if (month.HasValue)
+                    {
+                        query = query.Where(scbd =>
+                            scbd.Booking.BookingStartTime.Month == month.Value ||
+                            scbd.Booking.BookingEndTime.Month == month.Value);
+                    }
+
+                    if (year.HasValue)
+                    {
+                        query = query.Where(scbd =>
+                            scbd.Booking.BookingStartTime.Year == year.Value ||
+                            scbd.Booking.BookingEndTime.Year == year.Value);
+                    }
+
+                    var stats = await query
+                        .GroupBy(scbd => scbd.ServiceComboId)
+                        .Select(g => new { Id = g.Key, Count = g.Count() })
+                        .ToListAsync();
+
+                    if (!stats.Any())
+                        return new Response(false, 404, "Không tìm thấy booking nào");
+
+                    var ids = stats.Select(x => x.Id).ToList();
+                    var mappings = await _serviceCacheService.GetServiceMappings(ids);
+
+                    var result = stats.Select(s => new
+                    {
+                        ServiceComboId = s.Id,
+                        ServiceName = mappings.TryGetValue(s.Id, out var name) ? name : "N/A",
+                        s.Count
+                    }).ToList();
+
+                    return new Response(true, 200, "OK") { Data = result };
+                }
+                else
+                {
+                    var query = _context.RoomBookingItems
+                        .Where(rbi => rbi.Booking != null)
+                        .AsQueryable();
+
+                    if (startDate.HasValue && endDate.HasValue)
+                    {
+                        query = query.Where(rbi =>
+                            rbi.Booking.BookingStartTime.Date >= startDate.Value.Date && rbi.Booking.BookingStartTime.Date <= endDate.Value.Date ||
+                            rbi.Booking.BookingEndTime.Date >= startDate.Value.Date && rbi.Booking.BookingEndTime.Date <= endDate.Value.Date);
+                    }
+                    else if (startDate.HasValue)
+                    {
+                        query = query.Where(rbi =>
+                            rbi.Booking.BookingStartTime.Date == startDate.Value.Date ||
+                            rbi.Booking.BookingEndTime.Date == startDate.Value.Date);
+                    }
+
+                    if (month.HasValue)
+                    {
+                        query = query.Where(rbi =>
+                            rbi.Booking.BookingStartTime.Month == month.Value ||
+                            rbi.Booking.BookingEndTime.Month == month.Value);
+                    }
+
+                    if (year.HasValue)
+                    {
+                        query = query.Where(rbi =>
+                            rbi.Booking.BookingStartTime.Year == year.Value ||
+                            rbi.Booking.BookingEndTime.Year == year.Value);
+                    }
+
+                    var stats = await query
+                        .GroupBy(rbi => rbi.RoomId)
+                        .Select(g => new { Id = g.Key, Count = g.Count() })
+                        .ToListAsync();
+
+                    if (!stats.Any())
+                        return new Response(false, 404, "Không tìm thấy booking nào");
+
+                    var ids = stats.Select(x => x.Id).ToList();
+                    var mappings = await _roomService.GetRoomMappings(ids);
+
+                    var result = stats.Select(s => new
+                    {
+                        RoomId = s.Id,
+                        RoomName = mappings.TryGetValue(s.Id, out var name) ? name : "N/A",
+                        s.Count
+                    }).ToList();
+
+                    return new Response(true, 200, "OK") { Data = result };
+                }
             }
             catch (Exception ex)
             {

@@ -12,5 +12,6 @@
         public Guid RoomTypeId { get; set; }
         public virtual RoomType RoomType { get; set; }
         public virtual ICollection<RoomImage> RoomImages { get; set; }
+        public virtual ICollection<AgreeableBreed> AgreeableBreeds { get; set; }
     }
 }

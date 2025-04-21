@@ -43,6 +43,20 @@ namespace RoomApi.Presentation.Controllers
             }
         }
 
+        [HttpGet("available")]
+        public async Task<IActionResult> GetRoomsByBreed([FromQuery] IEnumerable<Guid> breedIds)
+        {
+            try
+            {
+                return (await _room.GetValidRoom(breedIds)).ToActionResult(this);
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
+                return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error");
+            }
+        }
+
         [HttpPost]
         public async Task<IActionResult> CreateRoom([FromForm] CreateUpdateRoomDTO dto, [FromForm] IFormFileCollection imageFiles)
         {

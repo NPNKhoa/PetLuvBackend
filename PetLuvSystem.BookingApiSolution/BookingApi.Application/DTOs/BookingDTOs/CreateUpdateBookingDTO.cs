@@ -10,8 +10,8 @@
         Guid CustomerId,
         string CustomerEmail,
         Guid PetId,
-        Guid BreedId,
-        string PetWeightRange,
+        Guid? BreedId,
+        string? PetWeightRange,
         Guid? RoomId,
         IEnumerable<Guid>? ServiceId,
         IEnumerable<Guid>? ServiceComboIds

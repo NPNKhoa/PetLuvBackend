@@ -251,7 +251,40 @@ namespace RoomApi.Infrastructure.Repositories
                 query = query.Include(x => x.RoomType);
             }
 
-            return await query.FirstOrDefaultAsync() ?? null!;
+            return await query.Include(r => r.AgreeableBreeds).FirstOrDefaultAsync() ?? null!;
         }
+
+        public async Task<Response> GetValidRoom(IEnumerable<Guid> breedIds)
+        {
+            try
+            {
+                var roomIds = await _context.AgreeableBreeds
+                    .Where(ab => breedIds.Contains(ab.BreedId))
+                    .Select(ab => ab.RoomId)
+                    .Distinct()
+                    .ToListAsync();
+
+                var rooms = await _context.Rooms
+                    .Include(r => r.RoomType)
+                    .Include(r => r.RoomImages)
+                    .Include(r => r.AgreeableBreeds)
+                    .Where(r => r.IsVisible && r.RoomType.IsVisible && roomIds.Contains(r.RoomId))
+                    .ToListAsync();
+
+                var (_, response) = RoomConversion.FromEntity(null, rooms);
+
+                return new Response(true, 200, "Found")
+                {
+                    Data = response
+                };
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
+                return new Response(false, 500, "Internal Server Error");
+            }
+        }
+
+
     }
 }

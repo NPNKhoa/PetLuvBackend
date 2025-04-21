@@ -2,8 +2,8 @@
 {
     public class AgreeableBreed
     {
-        public Guid RoomTypeId { get; set; }
         public Guid BreedId { get; set; }
-        public virtual RoomType RoomType { get; set; }
+        public Guid RoomId { get; set; }
+        public virtual Room Room { get; set; }
     }
 }

@@ -93,13 +93,13 @@ namespace BookingApi.Infrastructure.Services
                     return false;
                 }
 
-                var petIds = pets.Where(p => p.IsVisible).Select(p => p.PetId).ToHashSet();
+                var petIds = pets.Where(p => p.IsVisible).ToHashSet();
 
                 await _cacheService.SetCachedValueAsync(CacheKey, JsonSerializer.Serialize(petIds), CacheExpiry);
 
                 LogException.LogInformation("Pet list is updated from API and cached in Redis.");
 
-                return petIds.Contains(petId);
+                return pets.FirstOrDefault(p => p.PetId == petId) is not null;
             }
             catch (Exception ex)
             {

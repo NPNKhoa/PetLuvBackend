@@ -13,7 +13,6 @@ namespace RoomApi.Application.DTOs.RoomTypeDTOs
         string RoomTypeDesc,
         bool IsVisible,
         ICollection<Room> Rooms,
-        ICollection<RoomAccessory> RoomAccessories,
-        ICollection<AgreeableBreed> AgreeableBreeds
+        ICollection<RoomAccessory> RoomAccessories
     );
 }

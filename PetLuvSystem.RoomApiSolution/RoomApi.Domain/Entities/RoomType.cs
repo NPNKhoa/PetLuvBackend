@@ -14,6 +14,5 @@ namespace RoomApi.Domain.Entities
 
         public virtual ICollection<Room> Rooms { get; set; }
         public virtual ICollection<RoomAccessory> RoomAccessories { get; set; }
-        public virtual ICollection<AgreeableBreed> AgreeableBreeds { get; set; }
     }
 }

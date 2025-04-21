@@ -117,10 +117,6 @@ namespace ServiceApi.Infrastructure.Repositories
                 }
 
                 var breedMapping = await _breedMappingClient.GetBreedMappingAsync();
-
-                //var services = await context.Services.ToListAsync();
-                //_serviceMappingCache.UpdateCacheAsync(services);
-
                 var (_, responseData) = ServiceConversion.FromEntity(null, services, breedMapping);
 
                 return new Response(true, 200, "Service retrieved successfully")
@@ -245,11 +241,12 @@ namespace ServiceApi.Infrastructure.Repositories
                     return new Response(false, 404, "Không tìm thấy dịch vụ theo yêu cầu");
                 }
 
-                var (_, response) = ServiceConversion.FromEntity(null, services);
+                var breedMapping = await _breedMappingClient.GetBreedMappingAsync();
+                var (_, responseData) = ServiceConversion.FromEntity(null, services, breedMapping);
 
                 return new Response(true, 200, "Service retrived successfully")
                 {
-                    Data = new { data = response }
+                    Data = new { data = responseData }
                 };
             }
             catch (Exception ex)

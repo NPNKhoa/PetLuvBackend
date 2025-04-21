@@ -45,6 +45,20 @@ namespace BookingApi.Presentation.Controllers
             }
         }
 
+        [HttpGet("/api/users/{id}/bookings")]
+        public async Task<IActionResult> GetBookingHistory(Guid id)
+        {
+            try
+            {
+                return (await _booking.GetBookingHistory(id)).ToActionResult(this);
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
+                return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error");
+            }
+        }
+
         [HttpPost]
         public async Task<IActionResult> CreateBooking([FromBody] CreateUpdateBookingDTO dto)
         {
@@ -110,13 +124,17 @@ namespace BookingApi.Presentation.Controllers
 
                 if (dto.ServiceId is not null && dto.ServiceId.Any())
                 {
+                    if (dto.BreedId is null || dto.PetWeightRange is null)
+                    {
+                        return (new PetLuvSystem.SharedLibrary.Responses.Response(false, 400, "Dữ liệu không hợp lệ, loài hoặc cân nặng rỗng")).ToActionResult(this);
+                    }
                     var serviceBookingDetails = new List<ServiceBookingDetail>();
                     int totalTime = 0;
                     LogException.LogInformation($"[Booking Service] Processing Booking with service length {dto.ServiceId.Count()}");
                     foreach (var serviceId in dto.ServiceId)
                     {
                         LogException.LogInformation($"[Booking Service] Processing Booking with service id {serviceId}");
-                        var service = await _serviceService.GetServiceVariantByKey(serviceId, dto.BreedId, dto.PetWeightRange);
+                        var service = await _serviceService.GetServiceVariantByKey(serviceId, (Guid)dto.BreedId, dto.PetWeightRange);
 
                         if (service is null)
                         {
@@ -131,7 +149,7 @@ namespace BookingApi.Presentation.Controllers
                         serviceBookingDetails.Add(new ServiceBookingDetail
                         {
                             ServiceId = service.ServiceId,
-                            BreedId = dto.BreedId,
+                            BreedId = (Guid)dto.BreedId,
                             PetWeightRange = dto.PetWeightRange,
                             BookingItemPrice = service.Price
                         });
@@ -143,12 +161,17 @@ namespace BookingApi.Presentation.Controllers
 
                 if (dto.ServiceComboIds is not null && dto.ServiceComboIds.Any())
                 {
+                    if (dto.BreedId is null || dto.PetWeightRange is null)
+                    {
+                        return (new PetLuvSystem.SharedLibrary.Responses.Response(false, 400, "Dữ liệu không hợp lệ, loài hoặc cân nặng rỗng")).ToActionResult(this);
+                    }
+
                     var serviceComboBookingDetails = new List<ServiceComboBookingDetail>();
                     LogException.LogInformation($"[Booking Service] Processing Booking with service length {dto.ServiceComboIds.Count()}");
                     foreach (var serviceId in dto.ServiceComboIds)
                     {
                         LogException.LogInformation($"[Booking Service] Processing Booking with service id {serviceId}");
-                        var service = await _serviceService.GetServiceComboVariantByKey(serviceId, dto.BreedId, dto.PetWeightRange);
+                        var service = await _serviceService.GetServiceComboVariantByKey(serviceId, (Guid)dto.BreedId, dto.PetWeightRange);
                         int totalTime = 0;
                         if (service is not null)
                         {
@@ -157,7 +180,7 @@ namespace BookingApi.Presentation.Controllers
                             serviceComboBookingDetails.Add(new ServiceComboBookingDetail
                             {
                                 ServiceComboId = service.ServiceComboId,
-                                BreedId = dto.BreedId,
+                                BreedId = (Guid)dto.BreedId,
                                 PetWeightRange = dto.PetWeightRange,
                                 BookingId = entity.BookingId,
                                 BookingItemPrice = service.ComboPrice

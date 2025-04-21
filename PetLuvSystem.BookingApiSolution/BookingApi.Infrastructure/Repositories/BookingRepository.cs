@@ -4,6 +4,7 @@ using BookingApi.Domain.Entities;
 using BookingApi.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using PetLuvSystem.SharedLibrary.Logs;
+using PetLuvSystem.SharedLibrary.Responses;
 using System.Linq.Expressions;
 
 namespace BookingApi.Infrastructure.Repositories
@@ -113,6 +114,8 @@ namespace BookingApi.Infrastructure.Repositories
                     return new PetLuvSystem.SharedLibrary.Responses.Response(false, 404, "Không tìm thấy booking này");
                 }
 
+                LogException.LogInformation($"[Booking Service] Booking Service Items Count {entity.ServiceBookingDetails?.Count}");
+
                 var (response, _) = await BookingConversion.FromEntity(entity, null, _paymentStatusService);
 
                 return new PetLuvSystem.SharedLibrary.Responses.Response(true, 200, "Found")
@@ -205,15 +208,25 @@ namespace BookingApi.Infrastructure.Repositories
 
             if (includeOthers)
             {
-                query = query.Include(b => b.BookingType)
+                query = query
+                    .Include(b => b.BookingType)
                     .Include(b => b.BookingStatus)
                     .Include(b => b.RoomBookingItem)
-                    .Include(b => b.ServiceBookingDetails)
                     .Include(b => b.ServiceComboBookingDetails);
             }
 
-            return await query.FirstOrDefaultAsync(b => b.BookingId == id) ?? null!;
+            var booking = await query.FirstOrDefaultAsync(b => b.BookingId == id) ?? null!;
+            if (booking == null) return null!;
+
+            booking.ServiceBookingDetails = await _context.ServiceBookingDetails
+                .Where(x => x.BookingId == id)
+                .ToListAsync();
+
+            LogException.LogInformation($"aaaaaaaaaaaaaaaaa {booking.ServiceBookingDetails.Count}");
+
+            return booking;
         }
+
 
         public async Task<PetLuvSystem.SharedLibrary.Responses.Response> ValidateBookingCreation(Booking entity)
         {
@@ -234,6 +247,7 @@ namespace BookingApi.Infrastructure.Repositories
                     && (b.BookingStartTime == entity.BookingStartTime
                             || b.BookingEndTime >= entity.BookingStartTime
                         )
+                    && !b.BookingStatus.BookingStatusName.ToLower().Contains("hủy")
                     );
 
                 if (existingEntity is not null)
@@ -259,6 +273,40 @@ namespace BookingApi.Infrastructure.Repositories
         public Task<PetLuvSystem.SharedLibrary.Responses.Response> DeleteAsync(Guid id)
         {
             throw new NotImplementedException();
+        }
+
+        public async Task<Response> GetBookingHistory(Guid userId)
+        {
+            try
+            {
+                var bookings = await _context.Bookings
+                                        .Include(b => b.BookingStatus)
+                                        .Include(b => b.BookingType)
+                                        .OrderByDescending(b => b.BookingStartTime)
+                                        .Where(b => b.CustomerId == userId)
+                                        .ToListAsync();
+
+                if (bookings is null || bookings.Count == 0)
+                {
+                    return new Response(false, 404, "Không tìm thầy lịch hẹn nào");
+                }
+
+                var (_, response) = await BookingConversion.FromEntity(null, bookings, _paymentStatusService);
+
+                return new Response(true, 200, "Found")
+                {
+                    Data = response
+                };
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException is not null)
+                {
+                    LogException.LogExceptions(ex.InnerException);
+                }
+                LogException.LogExceptions(ex);
+                return new Response(false, 500, "Internal Server Error");
+            }
         }
     }
 }

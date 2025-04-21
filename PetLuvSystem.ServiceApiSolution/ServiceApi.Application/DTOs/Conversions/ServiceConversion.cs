@@ -1,4 +1,5 @@
-﻿using ServiceApi.Application.DTOs.ServiceDTOs;
+﻿using PetLuvSystem.SharedLibrary.Logs;
+using ServiceApi.Application.DTOs.ServiceDTOs;
 using ServiceApi.Application.DTOs.ServiceVariantDTOs;
 using ServiceApi.Application.DTOs.WalkDogServiceVariantDTOs;
 using ServiceApi.Domain.Entities;
@@ -89,6 +90,7 @@ namespace ServiceApi.Application.DTOs.Conversions
 
             if (services is not null && service is null)
             {
+                LogException.LogInformation($"{services.First().ServiceVariants?.Count}");
                 var _services = services.Select(p => new ServiceDTO
                 (
                     p.ServiceId,

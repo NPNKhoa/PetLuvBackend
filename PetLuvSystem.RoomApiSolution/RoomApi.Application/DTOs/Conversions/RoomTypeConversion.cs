@@ -13,7 +13,6 @@ namespace RoomApi.Application.DTOs.Conversions
             IsVisible = dto.IsVisible,
             Rooms = dto.Rooms,
             RoomAccessories = dto.RoomAccessories,
-            AgreeableBreeds = dto.AgreeableBreeds
         };
 
         public static RoomType ToEntity(CreateUpdateRoomTypeDTO dto) => new()
@@ -24,7 +23,6 @@ namespace RoomApi.Application.DTOs.Conversions
             IsVisible = dto.IsVisible,
             Rooms = new List<Room>(),
             RoomAccessories = new List<RoomAccessory>(),
-            AgreeableBreeds = new List<AgreeableBreed>()
         };
 
         public static (RoomTypeDTO?, IEnumerable<RoomTypeDTO>?) FromEntity(RoomType? entity, IEnumerable<RoomType>? entities)
@@ -37,8 +35,7 @@ namespace RoomApi.Application.DTOs.Conversions
                     entity.RoomTypeDesc,
                     entity.IsVisible,
                     entity.Rooms,
-                    entity.RoomAccessories,
-                    entity.AgreeableBreeds
+                    entity.RoomAccessories
                 );
 
                 return (singleDto, null);
@@ -52,8 +49,7 @@ namespace RoomApi.Application.DTOs.Conversions
                     e.RoomTypeDesc,
                     e.IsVisible,
                     e.Rooms,
-                    e.RoomAccessories,
-                    e.AgreeableBreeds
+                    e.RoomAccessories
                 ));
 
                 return (null, listDto);

@@ -1,4 +1,5 @@
-﻿using PetApi.Application.Interfaces;
+﻿using PetApi.Application.DTOs.Conversions;
+using PetApi.Application.Interfaces;
 using PetApi.Domain.Entities;
 using PetLuvSystem.SharedLibrary.Logs;
 using System.Text.Json;
@@ -20,11 +21,13 @@ namespace PetApi.Infrastructure.Services
                     return;
                 }
 
-                var visibleStatuses = pets
-                    .Where(p => p.IsVisible)
-                    .ToHashSet();
+                LogException.LogInformation("[Pet service] Updating cache...");
 
-                var jsonData = JsonSerializer.Serialize(visibleStatuses);
+                var (_, dto) = PetConversion.FromEntity(null, pets);
+
+                LogException.LogInformation($"[Pet service] pets found: {dto}");
+
+                var jsonData = JsonSerializer.Serialize(dto);
 
                 await _cacheService.SetCachedValueAsync(CacheKey, jsonData, CacheExpiry);
 

@@ -10,11 +10,11 @@ namespace BookingApi.Presentation.Controllers
     public class StatController(IStatistic _statistic) : ControllerBase
     {
         [HttpGet("services")]
-        public async Task<IActionResult> GetServicesBookedAsync([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, [FromQuery] int? month, [FromQuery] int? year)
+        public async Task<IActionResult> GetServicesBookedAsync([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, [FromQuery] int? month, [FromQuery] int? year, string serviceType = "service")
         {
             try
             {
-                return (await _statistic.GetServicesBookedAsync(startDate, endDate, month, year)).ToActionResult(this);
+                return (await _statistic.GetServicesBookedAsync(startDate, endDate, month, year, serviceType)).ToActionResult(this);
             }
             catch (Exception ex)
             {

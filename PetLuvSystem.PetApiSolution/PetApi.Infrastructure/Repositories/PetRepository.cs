@@ -102,16 +102,18 @@ namespace PetApi.Infrastructure.Repositories
             }
         }
 
-        public async Task<Response> GetAllAsync(int pageIndex = 1, int pageSize = 10)
+        public async Task<Response> GetAllAsync(int? pageIndex = 1, int? pageSize = 10)
         {
             try
             {
-                var pets = await _context.Pets
-                    .Skip((pageIndex - 1) * pageSize)
-                    .Take(pageSize)
-                    .Include(p => p.PetBreed)
-                    .Include(p => p.PetImagePaths)
-                    .ToListAsync();
+                var query = _context.Pets.Include(p => p.PetBreed).Include(p => p.PetImagePaths).AsQueryable();
+
+                if (pageIndex is not null && pageSize is not null)
+                {
+                    query = query.Skip(((int)pageIndex - 1) * (int)pageSize).Take((int)pageSize);
+                }
+
+                var pets = await query.ToListAsync();
 
                 if (pets is null || pets.Count == 0)
                 {
@@ -130,7 +132,7 @@ namespace PetApi.Infrastructure.Repositories
                         meta = new
                         {
                             currentPage = pageIndex,
-                            totalPage = Math.Ceiling((double)totalRecords / pageSize),
+                            totalPage = Math.Ceiling((double)totalRecords / (pageSize is not null ? (int)pageSize : 1)),
                         }
                     }
                 };
@@ -305,7 +307,7 @@ namespace PetApi.Infrastructure.Repositories
 
                 await _context.SaveChangesAsync();
 
-                var pets = await _context.Pets.ToListAsync();
+                var pets = await _context.Pets.Include(p => p.PetBreed).ThenInclude(p => p.PetType).ToListAsync();
                 await _cacheService.UpdateCache(pets);
 
                 var (responseData, _) = PetConversion.FromEntity(existingPet, null);
@@ -525,6 +527,11 @@ namespace PetApi.Infrastructure.Repositories
             }
 
             return await query.FirstOrDefaultAsync() ?? null!;
+        }
+
+        public Task<Response> GetAllAsync(int pageIndex = 1, int pageSize = 10)
+        {
+            throw new NotImplementedException();
         }
     }
 }

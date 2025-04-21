@@ -52,7 +52,7 @@ namespace BookingOrchestrator.Application.Saga
                         {
                             BookingId = context.Message.BookingId,
                             CustomerId = context.Message.CustomerId,
-                            Amount = context.Message.TotalPrice,
+                            Amount = context.Message.TotalPrice * 0.3m,
                             Description = context.Message.Description,
                             IpAddress = context.Message.IpAddress
                         })
