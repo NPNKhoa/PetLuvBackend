@@ -30,8 +30,7 @@ namespace PaymentApi.Infrastructure.Data
 
             modelBuilder.Entity<PaymentMethod>().HasData(
                 new PaymentMethod { PaymentMethodId = Guid.NewGuid(), PaymentMethodName = "Thanh toán qua VNPay", IsVisible = true },
-                new PaymentMethod { PaymentMethodId = Guid.NewGuid(), PaymentMethodName = "Thanh toán tại cửa hàng", IsVisible = true },
-                new PaymentMethod { PaymentMethodId = Guid.NewGuid(), PaymentMethodName = "Thanh toán khi nhận hàng", IsVisible = true }
+                new PaymentMethod { PaymentMethodId = Guid.NewGuid(), PaymentMethodName = "Thanh toán tại cửa hàng", IsVisible = true }
             );
 
             // PaymentStatus

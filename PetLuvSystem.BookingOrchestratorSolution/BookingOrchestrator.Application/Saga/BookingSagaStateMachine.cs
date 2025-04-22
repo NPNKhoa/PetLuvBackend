@@ -11,6 +11,7 @@ namespace BookingOrchestrator.Application.Saga
         // States
         public State AwaitingPayment { get; set; }
         public State AwaitingPaymentConfirmation { get; set; }
+        public State Deposited { get; set; }
         public State Completed { get; set; }
         public State Canceled { get; set; }
 
@@ -85,8 +86,10 @@ namespace BookingOrchestrator.Application.Saga
                 When(PaymentCompleted)
                     .Then(context =>
                     {
+                        LogException.LogInformation($"[Orchestrator] Payment Completed at {DateTime.UtcNow}");
                         context.Saga.PaymentCompletedAt = DateTime.UtcNow;
-                        context.Saga.Status = "Completed";
+                        context.Saga.Status = "Deposited";
+                        context.Saga.PaymentStatusId = context.Message.PaymentStatusId;
                     })
                     .SendAsync(new Uri("queue:notification-service"), context =>
                         Task.FromResult(new SendBookingConfirmationEmailCommand
@@ -94,6 +97,14 @@ namespace BookingOrchestrator.Application.Saga
                             BookingId = context.Message.BookingId,
                             CustomerId = context.Saga.CustomerId,
                             AmountPaid = context.Saga.TotalPrice
+                        })
+                    )
+                    .SendAsync(new Uri("queue:booking-service"), context =>
+                        Task.FromResult(new MarkBookingIsDepositedCommand
+                        {
+                            BookingId = context.Message.BookingId,
+                            PaymentStatusId = context.Saga.PaymentStatusId,
+                            IsSuccess = true
                         })
                     )
                     .TransitionTo(Completed),

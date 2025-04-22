@@ -49,7 +49,7 @@ namespace PaymentApi.Infrastructure.Repositories
         {
             try
             {
-                var existingEntity = await _context.Payment.FindAsync(id, false, true);
+                var existingEntity = await FindById(id, false, true);
 
                 if (existingEntity is null)
                 {
@@ -72,7 +72,10 @@ namespace PaymentApi.Infrastructure.Repositories
         {
             try
             {
-                var entities = await _context.Payment.AsNoTracking()
+                var entities = await _context.Payment
+                    .Include(p => p.PaymentMethod)
+                    .Include(p => p.PaymentStatus)
+                    .AsNoTracking()
                     .OrderByDescending(x => x.CreatedAt)
                     .Skip((pageIndex - 1) * pageSize)
                     .Take(pageSize)
@@ -81,6 +84,36 @@ namespace PaymentApi.Infrastructure.Repositories
                 if (entities is null || entities.Count == 0)
                 {
                     return new Response(false, 404, "Không có dữ liệu trạng thái thanh toán");
+                }
+
+                var (_, response) = PaymentConversion.FromEntity(null, entities);
+
+                return new Response(true, 200, "Found")
+                {
+                    Data = response
+                };
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
+                return new Response(false, 500, "Internal Server Error");
+            }
+        }
+
+        public async Task<Response> GetByUser(Guid userId)
+        {
+            try
+            {
+                var entities = await _context.Payment.AsNoTracking()
+                    .Include(p => p.PaymentStatus)
+                    .Include(p => p.PaymentMethod)
+                    .Where(p => p.UserId == userId && !p.PaymentStatus.PaymentStatusName.ToLower().Contains("chờ"))
+                    .OrderByDescending(x => x.CreatedAt)
+                    .ToListAsync();
+
+                if (entities is null || entities.Count == 0)
+                {
+                    return new Response(false, 404, "Không có dữ liệu lịch sử thanh toán");
                 }
 
                 var (_, response) = PaymentConversion.FromEntity(null, entities);
@@ -151,6 +184,7 @@ namespace PaymentApi.Infrastructure.Repositories
         {
             try
             {
+                LogException.LogInformation($"[Payment] Đang Cập nhật");
                 var existingEntity = await FindById(id, false, true);
 
                 if (existingEntity == null)
@@ -158,16 +192,11 @@ namespace PaymentApi.Infrastructure.Repositories
                     return new Response(false, 404, "Lịch sử thanh toán cần tìm không tồn tại hoặc bị xóa");
                 }
 
-                bool hasChanges = existingEntity.PaymentStatusId != entity.PaymentStatusId;
-
-                if (!hasChanges)
-                {
-                    return new Response(true, 204, "Không có thay đổi");
-                }
-
                 existingEntity.PaymentStatusId = entity.PaymentStatusId;
 
                 await _context.SaveChangesAsync();
+
+                LogException.LogInformation($"[Payment] Cập nhật thành công");
 
                 var (response, _) = PaymentConversion.FromEntity(existingEntity, null);
 
@@ -260,7 +289,7 @@ namespace PaymentApi.Infrastructure.Repositories
 
         public async Task<Payment> FindByRef(string transactionRef)
         {
-            return await _context.Payment.FirstOrDefaultAsync(x => x.TransactionRef.Equals(transactionRef))!;
+            return await _context.Payment.Include(p => p.PaymentStatus).FirstOrDefaultAsync(x => x.TransactionRef.Equals(transactionRef)) ?? null!;
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using BookingApi.Application.Interfaces;
+﻿using BookingApi.Application.Consumers;
+using BookingApi.Application.Interfaces;
 using BookingApi.Infrastructure.Data;
 using BookingApi.Infrastructure.Repositories;
 using BookingApi.Infrastructure.Services;
@@ -35,9 +36,22 @@ namespace BookingApi.Infrastructure.DependencyInjection
 
             services.AddMassTransit(x =>
             {
+                x.AddConsumer<MarkBookingIsDepositedConsumer>();
+
                 x.UsingRabbitMq((context, cfg) =>
                 {
-                    cfg.Host("rabbitmq://localhost");
+                    cfg.Host("rabbitmq://localhost", h =>
+                    {
+                        h.Username("guest");
+                        h.Password("guest");
+                    });
+
+                    cfg.ReceiveEndpoint("booking-service", e =>
+                    {
+                        e.ConfigureConsumer<MarkBookingIsDepositedConsumer>(context);
+                    });
+
+                    cfg.ConfigureEndpoints(context);
                 });
             });
 

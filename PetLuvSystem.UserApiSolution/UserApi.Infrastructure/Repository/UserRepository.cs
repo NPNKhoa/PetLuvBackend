@@ -91,7 +91,7 @@ namespace UserApi.Infrastructure.Repository
             {
                 var user = await FindById(id, false, true);
 
-                if (user is null || user.IsActive == false)
+                if (user is null)
                 {
                     return new Response(false, 404, "Không tìm thấy người dùng id này");
                 }
@@ -119,6 +119,11 @@ namespace UserApi.Infrastructure.Repository
                 if (existingUser is null)
                 {
                     return new Response(false, 404, "Email không tồn tại");
+                }
+
+                if (!existingUser.IsActive)
+                {
+                    return new Response(false, 404, "Tài khoản đã bị khóa");
                 }
 
                 var isValidPassword = BCrypt.Net.BCrypt.Verify(loginDTO.Password, existingUser.Password);
@@ -232,6 +237,35 @@ namespace UserApi.Infrastructure.Repository
             {
                 LogException.LogExceptions(ex);
                 return new Response(false, 500, "Internal Server Error");
+            }
+        }
+
+        public async Task<Response> ToggleAccountStatus(Guid userId)
+        {
+            try
+            {
+                var existingUser = await _context.Users.FindAsync(userId);
+
+                if (existingUser is null)
+                {
+                    return new Response(false, 404, "Không tìm thấy người dùng yêu cầu");
+                }
+
+                existingUser.IsActive = !existingUser.IsActive;
+
+                await _context.SaveChangesAsync();
+
+                var (response, _) = UserConversion.FromEntity(existingUser, null!);
+
+                return new Response(true, 200, "Found")
+                {
+                    Data = response
+                };
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
+                return new Response(false, 500, "Inernal Server Error");
             }
         }
 

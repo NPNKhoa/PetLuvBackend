@@ -138,6 +138,12 @@ namespace UserApi.Presentation.Controllers
             return response.ToActionResult(this);
         }
 
+        [HttpPut("{userId}/toggle-account-status")]
+        public async Task<IActionResult> ToggleAccoutStatus(Guid userId)
+        {
+            return (await _user.ToggleAccountStatus(userId)).ToActionResult(this);
+        }
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(Guid id)
         {

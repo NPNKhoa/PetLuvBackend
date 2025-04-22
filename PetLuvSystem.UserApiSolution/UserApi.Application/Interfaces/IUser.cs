@@ -12,5 +12,6 @@ namespace UserApi.Application.Interfaces
         public Task<Response> Login(LoginDTO loginDTO);
         public Task<Response> ChangePassword(ChangePasswordDTO changePasswordDTO);
         public Task<User> FindById(Guid id, bool noTracking = false, bool includeDetail = false);
+        public Task<Response> ToggleAccountStatus(Guid userId);
     }
 }

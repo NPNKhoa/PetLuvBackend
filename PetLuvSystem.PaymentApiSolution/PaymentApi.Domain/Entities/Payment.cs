@@ -5,8 +5,8 @@
         public Guid PaymentId { get; set; }
         public decimal Amount { get; set; }
         public string TransactionRef { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedTime { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedTime { get; set; } = DateTime.UtcNow;
 
         public Guid OrderId { get; set; }
         public Guid UserId { get; set; }

@@ -103,6 +103,12 @@ namespace BookingApi.Infrastructure.Data
                 new BookingStatus
                 {
                     BookingStatusId = Guid.NewGuid(),
+                    BookingStatusName = "Đã đặt cọc",
+                    IsVisible = true
+                },
+                new BookingStatus
+                {
+                    BookingStatusId = Guid.NewGuid(),
                     BookingStatusName = "Đã hoàn thành",
                     IsVisible = true
                 },

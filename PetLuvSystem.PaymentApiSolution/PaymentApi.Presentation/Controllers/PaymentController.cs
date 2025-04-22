@@ -40,6 +40,12 @@ namespace PaymentApi.Presentation.Controllers
             return response.ToActionResult(this);
         }
 
+        [HttpGet("/api/users/{userId}/payments")]
+        public async Task<IActionResult> GetPaymentHistories(Guid userId)
+        {
+            return (await _payment.GetByUser(userId)).ToActionResult(this);
+        }
+
         [HttpPost]
         public async Task<IActionResult> CreatePayment([FromBody] CreateUpdatePaymentDTO dto)
         {
@@ -132,22 +138,18 @@ namespace PaymentApi.Presentation.Controllers
                     return (new PetLuvSystem.SharedLibrary.Responses.Response(false, 404, "Không tìm thấy trạng thái thanh toán")).ToActionResult(this);
                 }
 
-                var currentTime = DateTime.UtcNow;
-
-                var payment = new Payment
+                await _payment.CreateAsync(new Payment
                 {
                     PaymentId = Guid.NewGuid(),
                     Amount = (decimal)money,
                     TransactionRef = transactionRef,
-                    CreatedAt = currentTime,
-                    UpdatedTime = currentTime,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedTime = DateTime.UtcNow,
                     OrderId = bookingId,
                     UserId = userId,
                     PaymentMethodId = paymentMethod.PaymentMethodId,
                     PaymentStatusId = paymentStatus.PaymentStatusId,
-                };
-
-                await _payment.CreateAsync(payment);
+                });
 
                 return Created(paymentUrl, paymentUrl);
             }
@@ -160,6 +162,7 @@ namespace PaymentApi.Presentation.Controllers
         [HttpGet("IpnAction")]
         public async Task<IActionResult> IpnAction()
         {
+            LogException.LogInformation("IPN running...");
             if (Request.QueryString.HasValue)
             {
                 try
@@ -167,26 +170,44 @@ namespace PaymentApi.Presentation.Controllers
                     var paymentResult = _vnpay.GetPaymentResult(Request.Query);
                     var payment = await _payment.FindByRef(paymentResult.PaymentId.ToString());
 
+                    LogException.LogInformation($"Transaction Ref {paymentResult.PaymentId}");
+
+                    if (payment is null)
+                    {
+                        LogException.LogInformation($"Không tìm thấy payment với ref {paymentResult.PaymentId}");
+                        return (new PetLuvSystem.SharedLibrary.Responses.Response(false, 400, "Không tìm thấy paymnet")).ToActionResult(this);
+                    }
 
                     if (paymentResult.IsSuccess)
                     {
+                        LogException.LogInformation($"[Payment] Thanh toán thành công. Mã giao dịch: {paymentResult.PaymentId}");
                         // Update Payment Status
                         var paymentStatus = await _paymentStatus.FindByName("Đã đặt cọc");
 
                         if (paymentStatus is null)
                         {
-                            return (new PetLuvSystem.SharedLibrary.Responses.Response(false, 500, "Không tìm thấy paymnet status")).ToActionResult(this);
+                            LogException.LogInformation($"[Payment] Xử lý trạng thái thanh toán thất bại, không tìm thấy trạng thái thanh toán");
+                            return (new PetLuvSystem.SharedLibrary.Responses.Response(false, 400, "Không tìm thấy paymnet status")).ToActionResult(this);
                         }
 
+                        LogException.LogInformation($"[Payment] PaymentStatusId: {paymentStatus.PaymentStatusId}. Đang cập nhật trạng thái thanh toán...");
                         payment.PaymentStatusId = paymentStatus.PaymentStatusId;
-                        await _payment.UpdateAsync(payment.PaymentId, payment);
+                        var response = await _payment.UpdateAsync(payment.PaymentId, payment);
 
+                        if (!response.Flag)
+                        {
+                            LogException.LogInformation($"[Payment] Update Payment Status Failed with message {response.Message}");
+                            return response.ToActionResult(this);
+                        }
+
+                        LogException.LogInformation($"[Payment] Đang publish event...");
                         // Publish the PaymentCompletedEvent
                         await _bus.Publish(
                             new PaymentCompletedEvent
                             {
                                 BookingId = payment.OrderId,
-                                PaidAt = paymentResult.Timestamp
+                                PaidAt = paymentResult.Timestamp,
+                                PaymentStatusId = paymentStatus.PaymentStatusId
                             }
                         );
 
@@ -194,7 +215,7 @@ namespace PaymentApi.Presentation.Controllers
                     }
 
                     // Thực hiện hành động nếu thanh toán thất bại tại đây. Ví dụ: Hủy đơn hàng.
-
+                    LogException.LogInformation($"[Payment] Thanh toán thất bại. Lý do: {paymentResult.PaymentResponse.Description}");
                     await _bus.Publish(
                         new PaymentRejectedEvent
                         {
@@ -212,12 +233,14 @@ namespace PaymentApi.Presentation.Controllers
                 }
             }
 
+            LogException.LogInformation($"Không tìm thấy thông tin thanh toán {Request.QueryString.ToString()}");
             return NotFound("Không tìm thấy thông tin thanh toán.");
         }
 
         [HttpGet("Callback")]
         public ActionResult<PaymentResult> Callback()
         {
+            LogException.LogInformation("Callback running...");
             if (Request.QueryString.HasValue)
             {
                 try

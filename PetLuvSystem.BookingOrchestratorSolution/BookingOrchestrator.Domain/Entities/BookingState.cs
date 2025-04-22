@@ -7,18 +7,14 @@ namespace BookingOrchestrator.Domain.Entities
     public class BookingState : SagaStateMachineInstance, ISagaVersion
     {
         [BsonId]
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; } // MongoDB Id
-
-        [BsonElement("CorrelationId")]
-        public Guid CorrelationId { get; set; }
+        public Guid CorrelationId { get; set; } // Also _id in MongoDB
 
         [BsonElement("BookingId")]
         public Guid BookingId { get; set; }
 
         [BsonElement("CustomerId")]
         public Guid CustomerId { get; set; }
-        [BsonElement("CustomerEmail ")]
+        [BsonElement("CustomerEmail")]
         public string CustomerEmail { get; set; }
 
         [BsonElement("PetId")]
@@ -32,6 +28,8 @@ namespace BookingOrchestrator.Domain.Entities
 
         [BsonElement("Status")]
         public string Status { get; set; }
+        [BsonElement("PaymentStatusId")]
+        public Guid PaymentStatusId { get; set; }
 
         [BsonElement("CreatedAt")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

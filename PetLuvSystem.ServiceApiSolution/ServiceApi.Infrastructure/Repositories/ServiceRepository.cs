@@ -27,7 +27,7 @@ namespace ServiceApi.Infrastructure.Repositories
                 await context.SaveChangesAsync();
 
                 var services = await context.Services.ToListAsync();
-                _serviceMappingCache.UpdateCacheAsync(services);
+                await _serviceMappingCache.UpdateCacheAsync(services);
 
                 var (responseData, _) = ServiceConversion.FromEntity(entity, null);
 
@@ -78,7 +78,7 @@ namespace ServiceApi.Infrastructure.Repositories
                 await context.SaveChangesAsync();
 
                 var services = await context.Services.ToListAsync();
-                _serviceMappingCache.UpdateCacheAsync(services);
+                await _serviceMappingCache.UpdateCacheAsync(services);
 
                 var (response, _) = ServiceConversion.FromEntity(existingService, null!);
 
@@ -287,7 +287,7 @@ namespace ServiceApi.Infrastructure.Repositories
         {
             try
             {
-                var existingService = await FindServiceById(id);
+                var existingService = await FindServiceById(id, false, true);
 
                 if (existingService is null)
                 {
@@ -326,7 +326,7 @@ namespace ServiceApi.Infrastructure.Repositories
                 }
 
                 var services = await context.Services.ToListAsync();
-                _serviceMappingCache.UpdateCacheAsync(services);
+                await _serviceMappingCache.UpdateCacheAsync(services);
 
                 var (resposneData, _) = ServiceConversion.FromEntity(existingService, null);
 
