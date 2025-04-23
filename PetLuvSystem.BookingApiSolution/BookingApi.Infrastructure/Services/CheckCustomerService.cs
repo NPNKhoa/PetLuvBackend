@@ -28,12 +28,28 @@ namespace BookingApi.Infrastructure.Services
 
             if (!string.IsNullOrEmpty(cacheData))
             {
-                LogException.LogInformation("Data fetched from cache");
+                LogException.LogInformation("[Check Customer] Data fetched from cache");
 
-                var cachedUsers = JsonSerializer.Deserialize<HashSet<Guid>>(cacheData);
-                if (cachedUsers != null && cachedUsers.Contains(customerId))
+                try
                 {
-                    return true;
+                    var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    var cachedUsers = JsonSerializer.Deserialize<List<UserDTO>>(cacheData, options);
+
+                    if (cachedUsers != null)
+                    {
+                        var customerIds = cachedUsers
+                            .Where(u => u.IsActive)
+                            .Select(u => u.UserId)
+                            .ToHashSet();
+
+                        LogException.LogInformation($"[Check Customer] {customerIds.Count} active users loaded from cache");
+
+                        return customerIds.Contains(customerId);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogException.LogError($"[Cache Deserialize Error] {ex.Message}");
                 }
 
                 return false;
@@ -60,13 +76,7 @@ namespace BookingApi.Infrastructure.Services
                 }
 
                 var json = await response.Content.ReadAsStringAsync();
-
                 var jsonNode = JsonNode.Parse(json);
-                if (jsonNode == null)
-                {
-                    LogException.LogError("Failed to parse API response.");
-                    return false;
-                }
 
                 var userDataJson = jsonNode?["data"]?["data"]?.ToJsonString();
                 if (string.IsNullOrEmpty(userDataJson))
@@ -87,9 +97,12 @@ namespace BookingApi.Infrastructure.Services
                     return false;
                 }
 
-                var customerIds = users.Where(u => u.IsActive).Select(u => u.UserId).ToHashSet();
+                var customerIds = users
+                    .Where(u => u.IsActive)
+                    .Select(u => u.UserId)
+                    .ToHashSet();
 
-                await _cacheService.SetCachedValueAsync(CacheKey, JsonSerializer.Serialize(customerIds), CacheExpiry);
+                await _cacheService.SetCachedValueAsync(CacheKey, JsonSerializer.Serialize(users), CacheExpiry);
 
                 LogException.LogInformation("Customer list is updated from API and cached in Redis.");
 
@@ -101,5 +114,6 @@ namespace BookingApi.Infrastructure.Services
                 return false;
             }
         }
+
     }
 }

@@ -212,6 +212,56 @@ namespace PaymentApi.Infrastructure.Repositories
             }
         }
 
+        public async Task<Response> UpdateStatus(Guid orderId, decimal amount, bool isComplete)
+        {
+            try
+            {
+                var entity = await _context.Payment
+                    .Include(p => p.PaymentStatus)
+                    .Include(p => p.PaymentMethod)
+                    .FirstOrDefaultAsync(p => p.OrderId == orderId);
+
+                if (entity is null)
+                {
+                    return new Response(false, 404, "Không tìm thấy thanh toán với mã đơn hàng này");
+                }
+
+                string statusName = isComplete ? "Đã thanh toán" : "Thanh toán thất bại";
+
+                LogException.LogInformation($"[Payment] isComplete trong repository {isComplete.ToString()}");
+                LogException.LogInformation($"[Payment] Trạng thái thanh toán {isComplete} - {statusName}");
+
+                var paymentStatusId = (await _context.PaymentStatus
+                    .FirstOrDefaultAsync(ps => ps.PaymentStatusName.Equals(statusName)))?.PaymentStatusId;
+
+                LogException.LogInformation($"[Payment] ID Trạng thái thanh toán {paymentStatusId}");
+
+
+                if (paymentStatusId is null)
+                {
+                    return new Response(false, 404, "Không tìm thấy trang thái thanh toán");
+                }
+
+                entity.PaymentStatusId = (Guid)paymentStatusId;
+                entity.Amount = isComplete ? entity.Amount / 0.3m : entity.Amount;
+                entity.UpdatedTime = DateTime.UtcNow;
+
+                await _context.SaveChangesAsync();
+
+                var (response, _) = PaymentConversion.FromEntity(entity, null);
+
+                return new Response(true, 200, "Cập nhật trạng thái thanh toán thành công")
+                {
+                    Data = response
+                };
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
+                return new Response(false, 500, "Internal Server Error");
+            }
+        }
+
         public async Task<Response> CreatePaymentUrlAsync(Guid bookingId, Guid userId, decimal money, string description, string ipAddress)
         {
             try

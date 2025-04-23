@@ -28,7 +28,7 @@ namespace BookingApi.Infrastructure.Services
 
             if (!string.IsNullOrEmpty(cacheData))
             {
-                LogException.LogInformation("Data fetched from cache");
+                LogException.LogInformation("[Check Pet] Data fetched from cache");
 
                 var cachedPets = JsonSerializer.Deserialize<HashSet<PetDTO>>(cacheData);
 

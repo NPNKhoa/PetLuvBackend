@@ -94,6 +94,20 @@ namespace PaymentApi.Presentation.Controllers
             }
         }
 
+        [HttpPut("{id}/update-status")]
+        public async Task<IActionResult> UpdatePaymentStatus(Guid id, [FromBody] UpdateStatusDTO dto)
+        {
+            try
+            {
+                return (await _payment.UpdateStatus(id, dto.Amount, dto.IsComplete)).ToActionResult(this);
+            }
+            catch (Exception ex)
+            {
+                LogException.LogExceptions(ex);
+                return (new PetLuvSystem.SharedLibrary.Responses.Response(false, 500, "Internal Server Error")).ToActionResult(this);
+            }
+        }
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePayment(Guid id)
         {

@@ -10,5 +10,6 @@ namespace PaymentApi.Application.Interfaces
         public Task<Payment> FindById(Guid id, bool noTacking = false, bool includeOthers = false);
         public Task<Payment> FindByRef(string transactionRef);
         public Task<Response> GetByUser(Guid userId);
+        public Task<Response> UpdateStatus(Guid orderId, decimal amount, bool isComplete);
     }
 }

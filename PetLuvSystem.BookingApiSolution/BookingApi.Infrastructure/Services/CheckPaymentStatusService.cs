@@ -29,10 +29,12 @@ namespace BookingApi.Infrastructure.Services
         {
             var cacheData = await _cacheService.GetCachedValueAsync(CacheKey);
 
+            LogException.LogInformation("Dang chay cai nay ne");
+
             // Check Cache
             if (!string.IsNullOrEmpty(cacheData))
             {
-                LogException.LogInformation("Data fetched from cache");
+                LogException.LogInformation("[CheckPaymentStatusAsync] Data fetched from cache");
 
                 var tempDict = JsonSerializer.Deserialize<Dictionary<string, string>>(cacheData);
                 var checkCache = new Dictionary<Guid, bool>();
@@ -104,24 +106,35 @@ namespace BookingApi.Infrastructure.Services
 
         public async Task<Guid> GetPaymentStatusIdByName(string paymentStatusName)
         {
-            // Kiểm tra cache trước
             var cacheData = await _cacheService.GetCachedValueAsync(MappingCacheKey);
+            LogException.LogInformation($"[DEBUG] Retrieved cache with key '{MappingCacheKey}': {cacheData}");
 
             if (!string.IsNullOrEmpty(cacheData))
             {
-                LogException.LogInformation("Data fetched from cache");
-
-                var cachedStatuses = JsonSerializer.Deserialize<Dictionary<string, Guid>>(cacheData);
-
-                if (cachedStatuses != null && cachedStatuses.TryGetValue(paymentStatusName, out Guid paymentStatusId))
+                try
                 {
-                    return paymentStatusId;
-                }
+                    var rawStatuses = JsonSerializer.Deserialize<Dictionary<string, string>>(cacheData);
 
-                return Guid.Empty;
+                    if (rawStatuses != null && rawStatuses.TryGetValue(paymentStatusName, out var idStr))
+                    {
+                        if (Guid.TryParse(idStr, out Guid paymentStatusId))
+                        {
+                            LogException.LogInformation($"[DEBUG] Found and parsed payment status ID from cache: {paymentStatusId}");
+                            return paymentStatusId;
+                        }
+                        else
+                        {
+                            LogException.LogInformation($"[WARN] Failed to parse '{idStr}' as Guid from cache.");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogException.LogError($"[ERROR] Cache deserialize error: {ex.Message}");
+                }
             }
 
-            // Không tìm thấy trong cache, gọi API để lấy dữ liệu
+            // fallback to API...
             var apiUrl = _configuration["ExternalServices:GetPaymentStatusIdByName"];
 
             if (string.IsNullOrEmpty(apiUrl))
@@ -131,8 +144,7 @@ namespace BookingApi.Infrastructure.Services
             }
 
             var requestUrl = $"{apiUrl}?paymentStatusName={Uri.EscapeDataString(paymentStatusName)}";
-
-            LogException.LogInformation(requestUrl);
+            LogException.LogInformation($"[DEBUG] Requesting API: {requestUrl}");
 
             try
             {
@@ -149,7 +161,6 @@ namespace BookingApi.Infrastructure.Services
                 LogException.LogInformation("Checking PaymentStatus...");
                 LogException.LogInformation(json);
 
-                // Deserialize JSON response
                 var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
                 var jsonNode = JsonNode.Parse(json);
                 var paymentStatusJson = jsonNode?["data"]?.ToString();
@@ -172,12 +183,15 @@ namespace BookingApi.Infrastructure.Services
 
                 var visibleStatuses = paymentStatuses
                     .Where(p => p.IsVisible)
-                    .ToDictionary(p => p.PaymentStatusName, p => p.PaymentStatusId);
+                    .ToDictionary(p => p.PaymentStatusName, p => p.PaymentStatusId.ToString()); // stringify
 
                 await _cacheService.SetCachedValueAsync(MappingCacheKey, JsonSerializer.Serialize(visibleStatuses), CacheExpiry);
                 LogException.LogInformation("PaymentStatus is updated from API and cached in Redis.");
 
-                return visibleStatuses.TryGetValue(paymentStatusName, out Guid statusId) ? statusId : Guid.Empty;
+                return visibleStatuses.TryGetValue(paymentStatusName, out var idStringFromApi)
+                    && Guid.TryParse(idStringFromApi, out var parsedId)
+                    ? parsedId
+                    : Guid.Empty;
             }
             catch (Exception ex)
             {
@@ -185,6 +199,7 @@ namespace BookingApi.Infrastructure.Services
                 return Guid.Empty;
             }
         }
+
 
         public async Task<string> GetPaymentStatusNameById(Guid paymentStatusId)
         {
