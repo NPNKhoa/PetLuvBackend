@@ -25,6 +25,15 @@ namespace ServiceApi.Application.DTOs.Conversions
             IsVisible = dto.IsVisible
         };
 
+        public static ServiceVariant ToEntity(UpdateServiceVariantDTO dto) => new()
+        {
+            BreedId = dto.BreedId,
+            PetWeightRange = dto.PetWeightRange,
+            Price = dto.Price,
+            EstimateTime = dto.EstimateTime,
+            IsVisible = dto.IsVisible
+        };
+
         public static (ServiceVariantDTO?, IEnumerable<ServiceVariantDTO>?) FromEntity(ServiceVariant? serviceVariant, IEnumerable<ServiceVariant>? serviceVariants, Dictionary<Guid, string>? breedMapping = null)
         {
             if (serviceVariant is not null && serviceVariants is null)

@@ -32,7 +32,7 @@ namespace BookingApi.Application.Consumers
                     return;
                 }
 
-                var bookingStatusId = await _bookingStatusRepo.FindBookingStatusIdByName(command.IsSuccess ? "Đã đặt cọc" : "Đã hủy");
+                var bookingStatusId = await _bookingStatusRepo.FindBookingStatusIdByName(command.IsSuccess ? "Đang xử lý" : "Đã hủy");
 
                 if (bookingStatusId == Guid.Empty)
                 {
@@ -42,6 +42,7 @@ namespace BookingApi.Application.Consumers
 
                 booking.BookingStatusId = bookingStatusId;
                 booking.PaymentStatusId = command.PaymentStatusId;
+                booking.DepositAmount = command.DepositAmount;
 
                 LogException.LogInformation($"[Booking] Payment is {(command.IsSuccess ? "success" : "failed")}");
 

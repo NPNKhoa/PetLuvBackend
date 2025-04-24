@@ -59,7 +59,7 @@ namespace ServiceApi.Presentation.Controllers
         }
 
         [HttpPut("{serviceId}/{breedId}/{petWeightRange}")]
-        public async Task<IActionResult> UpdateServiceVariant([FromRoute] Guid serviceId, [FromRoute] Guid breedId, [FromRoute] string petWeightRange, [FromBody] decimal price)
+        public async Task<IActionResult> UpdateServiceVariant([FromRoute] Guid serviceId, [FromRoute] Guid breedId, [FromRoute] string petWeightRange, [FromBody] UpdateServiceVariantDTO dto)
         {
             if (!ModelState.IsValid)
             {
@@ -72,8 +72,10 @@ namespace ServiceApi.Presentation.Controllers
             }
             try
             {
-                var response = await _serviceVariant.UpdateAsync(serviceId, breedId, petWeightRange, price);
-                return response.ToActionResult(this);
+                var entity = ServiceVariantConversion.ToEntity(dto);
+                entity.ServiceId = serviceId;
+
+                return (await _serviceVariant.UpdateAsync(serviceId, breedId, petWeightRange, entity)).ToActionResult(this);
             }
             catch (Exception ex)
             {

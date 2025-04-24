@@ -37,6 +37,7 @@ namespace BookingApi.Infrastructure.DependencyInjection
             services.AddMassTransit(x =>
             {
                 x.AddConsumer<MarkBookingIsDepositedConsumer>();
+                x.AddConsumer<CancelBookingConsumer>();
 
                 x.UsingRabbitMq((context, cfg) =>
                 {
@@ -49,6 +50,7 @@ namespace BookingApi.Infrastructure.DependencyInjection
                     cfg.ReceiveEndpoint("booking-service", e =>
                     {
                         e.ConfigureConsumer<MarkBookingIsDepositedConsumer>(context);
+                        e.ConfigureConsumer<CancelBookingConsumer>(context);
                     });
 
                     cfg.ConfigureEndpoints(context);

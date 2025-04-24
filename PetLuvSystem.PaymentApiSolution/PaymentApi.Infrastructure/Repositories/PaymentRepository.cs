@@ -228,13 +228,8 @@ namespace PaymentApi.Infrastructure.Repositories
 
                 string statusName = isComplete ? "Đã thanh toán" : "Thanh toán thất bại";
 
-                LogException.LogInformation($"[Payment] isComplete trong repository {isComplete.ToString()}");
-                LogException.LogInformation($"[Payment] Trạng thái thanh toán {isComplete} - {statusName}");
-
                 var paymentStatusId = (await _context.PaymentStatus
                     .FirstOrDefaultAsync(ps => ps.PaymentStatusName.Equals(statusName)))?.PaymentStatusId;
-
-                LogException.LogInformation($"[Payment] ID Trạng thái thanh toán {paymentStatusId}");
 
 
                 if (paymentStatusId is null)

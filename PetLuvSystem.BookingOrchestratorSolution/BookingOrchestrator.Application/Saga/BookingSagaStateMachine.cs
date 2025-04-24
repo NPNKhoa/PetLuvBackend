@@ -104,6 +104,7 @@ namespace BookingOrchestrator.Application.Saga
                         {
                             BookingId = context.Message.BookingId,
                             PaymentStatusId = context.Saga.PaymentStatusId,
+                            DepositAmount = context.Saga.TotalPrice * 0.3m,
                             IsSuccess = true
                         })
                     )

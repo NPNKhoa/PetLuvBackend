@@ -36,7 +36,7 @@ namespace ServiceApi.Infrastructure.Repositories
 
                 return new Response(true, 201, "Service Variant created successfully")
                 {
-                    Data = new { data = responseData }
+                    Data = responseData
                 };
             }
             catch (Exception ex)
@@ -124,7 +124,7 @@ namespace ServiceApi.Infrastructure.Repositories
             }
         }
 
-        public async Task<Response> UpdateAsync(Guid serviceId, Guid breedId, string petWeightRange, decimal price)
+        public async Task<Response> UpdateAsync(Guid serviceId, Guid breedId, string petWeightRange, ServiceVariant entity)
         {
             try
             {
@@ -132,18 +132,25 @@ namespace ServiceApi.Infrastructure.Repositories
 
                 if (existingServiceVariant is null)
                 {
-                    return new Response(false, 404, "Service Variant not found");
+                    return new Response(false, 404, "Không tìm thấy biến thể này!");
                 }
 
-                bool hasChanges = price != existingServiceVariant.Price
-                                || breedId != existingServiceVariant.BreedId
-                                || petWeightRange != existingServiceVariant.PetWeightRange;
+                bool hasChanges = entity.Price != existingServiceVariant.Price
+                                    || entity.BreedId != existingServiceVariant.BreedId
+                                    || entity.PetWeightRange != existingServiceVariant.PetWeightRange
+                                    || entity.IsVisible != existingServiceVariant.IsVisible
+                                    || entity.EstimateTime != existingServiceVariant.EstimateTime;
 
                 if (hasChanges)
                 {
-                    existingServiceVariant.Price = price;
-                    existingServiceVariant.BreedId = breedId;
-                    existingServiceVariant.PetWeightRange = petWeightRange;
+                    LogException.LogInformation($"[Service] The entity has change. Updating...");
+
+                    existingServiceVariant.Price = entity.Price;
+                    existingServiceVariant.BreedId = entity.BreedId;
+                    existingServiceVariant.PetWeightRange = entity.PetWeightRange;
+                    existingServiceVariant.EstimateTime = entity.EstimateTime;
+                    existingServiceVariant.IsVisible = entity.IsVisible;
+
                     await context.SaveChangesAsync();
                 }
 
@@ -183,9 +190,10 @@ namespace ServiceApi.Infrastructure.Repositories
                     await context.SaveChangesAsync();
                     var entities = await context.ServiceVariants.Where(s => s.IsVisible == true).ToListAsync();
                     await _cacheService.UpdateCacheAsync(entities);
-                    return new Response(false, 200, "Service Variant was made as hidden successfully")
+                    var (responseData2, _) = ServiceVariantConversion.FromEntity(existingServiceVariant, null);
+                    return new Response(true, 200, "Service Variant was made as hidden successfully")
                     {
-                        Data = new { data = responseData }
+                        Data = new { data = responseData2 }
                     };
                 }
 
