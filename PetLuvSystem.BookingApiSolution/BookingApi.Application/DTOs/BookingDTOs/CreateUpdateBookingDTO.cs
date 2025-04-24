@@ -14,6 +14,7 @@
         string? PetWeightRange,
         Guid? RoomId,
         IEnumerable<Guid>? ServiceId,
+        IEnumerable<string>? ServiceNames,
         IEnumerable<Guid>? ServiceComboIds
     );
 }

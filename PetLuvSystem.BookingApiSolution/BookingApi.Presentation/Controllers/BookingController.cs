@@ -75,6 +75,7 @@ namespace BookingApi.Presentation.Controllers
             {
                 var entity = BookingConversion.ToEntity(dto);
 
+                // Valiadation
                 var validator = await _booking.ValidateBookingCreation(entity);
                 bool isProcessed = false;
 
@@ -97,6 +98,7 @@ namespace BookingApi.Presentation.Controllers
                 string estimateTime = string.Empty;
                 var totalAmount = 0m;
 
+                // Room Booking
                 if (dto.RoomId is not null)
                 {
                     LogException.LogInformation($"[Booking Service] Processing Booking with roomid {dto.RoomId}");
@@ -122,18 +124,26 @@ namespace BookingApi.Presentation.Controllers
                     isProcessed = true;
                 }
 
+                // Service Booking
                 if (dto.ServiceId is not null && dto.ServiceId.Any())
                 {
                     if (dto.BreedId is null || dto.PetWeightRange is null)
                     {
                         return (new PetLuvSystem.SharedLibrary.Responses.Response(false, 400, "Dữ liệu không hợp lệ, loài hoặc cân nặng rỗng")).ToActionResult(this);
                     }
+
                     var serviceBookingDetails = new List<ServiceBookingDetail>();
                     int totalTime = 0;
                     LogException.LogInformation($"[Booking Service] Processing Booking with service length {dto.ServiceId.Count()}");
-                    foreach (var serviceId in dto.ServiceId)
+
+                    var serviceIdList = dto.ServiceId.ToList();
+                    var serviceNameList = dto.ServiceNames?.ToList();
+
+                    for (int i = 0; i < serviceIdList.Count; i++)
                     {
+                        var serviceId = serviceIdList[i];
                         LogException.LogInformation($"[Booking Service] Processing Booking with service id {serviceId}");
+
                         var service = await _serviceService.GetServiceVariantByKey(serviceId, (Guid)dto.BreedId, dto.PetWeightRange);
 
                         if (service is null)
@@ -148,17 +158,20 @@ namespace BookingApi.Presentation.Controllers
 
                         serviceBookingDetails.Add(new ServiceBookingDetail
                         {
-                            ServiceId = service.ServiceId,
+                            ServiceId = serviceId,
+                            ServiceItemName = serviceNameList != null && i < serviceNameList.Count ? serviceNameList[i] : string.Empty,
                             BreedId = (Guid)dto.BreedId,
                             PetWeightRange = dto.PetWeightRange,
                             BookingItemPrice = service.Price
                         });
                     }
+
                     entity.ServiceBookingDetails = serviceBookingDetails;
                     estimateTime = totalTime.ToString();
                     isProcessed = true;
                 }
 
+                // Combo Booking
                 if (dto.ServiceComboIds is not null && dto.ServiceComboIds.Any())
                 {
                     if (dto.BreedId is null || dto.PetWeightRange is null)
@@ -168,29 +181,41 @@ namespace BookingApi.Presentation.Controllers
 
                     var serviceComboBookingDetails = new List<ServiceComboBookingDetail>();
                     LogException.LogInformation($"[Booking Service] Processing Booking with service length {dto.ServiceComboIds.Count()}");
-                    foreach (var serviceId in dto.ServiceComboIds)
+
+                    var comboIdList = dto.ServiceComboIds.ToList();
+                    var serviceNameList = dto.ServiceNames?.ToList();
+
+                    for (int i = 0; i < comboIdList.Count; i++)
                     {
+                        var serviceId = comboIdList[i];
                         LogException.LogInformation($"[Booking Service] Processing Booking with service id {serviceId}");
+
                         var service = await _serviceService.GetServiceComboVariantByKey(serviceId, (Guid)dto.BreedId, dto.PetWeightRange);
                         int totalTime = 0;
+
                         if (service is not null)
                         {
                             totalTime += service.EstimateTime;
                             totalAmount += service.ComboPrice;
+
                             serviceComboBookingDetails.Add(new ServiceComboBookingDetail
                             {
                                 ServiceComboId = service.ServiceComboId,
+                                ServiceComboItemName = serviceNameList != null && i < serviceNameList.Count ? serviceNameList[i] : string.Empty,
                                 BreedId = (Guid)dto.BreedId,
                                 PetWeightRange = dto.PetWeightRange,
                                 BookingId = entity.BookingId,
                                 BookingItemPrice = service.ComboPrice
                             });
                         }
+
                         estimateTime = totalTime.ToString();
                     }
+
                     entity.ServiceComboBookingDetails = serviceComboBookingDetails;
                     isProcessed = true;
                 }
+
 
                 if (!isProcessed)
                 {

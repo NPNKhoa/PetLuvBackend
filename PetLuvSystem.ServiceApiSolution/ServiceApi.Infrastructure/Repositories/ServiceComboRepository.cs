@@ -103,6 +103,7 @@ namespace ServiceApi.Infrastructure.Repositories
             try
             {
                 var serviceCombos = await context.ServiceCombos
+                    .Include(b => b.ServiceComboVariants)
                     .Skip((pageIndex - 1) * pageSize)
                     .Take(pageSize)
                     .ToListAsync();
@@ -114,7 +115,8 @@ namespace ServiceApi.Infrastructure.Repositories
 
                 var totalCount = await context.ServiceCombos.CountAsync();
 
-                var (_, responseData) = ServiceComboConversion.FromEntity(null, serviceCombos);
+                var breedMapping = await _breedMappingClient.GetBreedMappingAsync();
+                var (_, responseData) = ServiceComboConversion.FromEntity(null, serviceCombos, breedMapping);
 
                 return new Response(true, 200, "Service Combos retrieved successfully")
                 {
