@@ -9,7 +9,7 @@ using System.Linq.Expressions;
 
 namespace ServiceApi.Infrastructure.Repositories
 {
-    public class ServiceComboVariantRepository(ServiceDbContext context, IServiceComboCachingService _cacheService) : IServiceComboVariant
+    public class ServiceComboVariantRepository(ServiceDbContext context, IServiceComboCachingService _cacheService, IBreedMappingService _breedMappingClient) : IServiceComboVariant
     {
         public async Task<Response> CreateAsync(ServiceComboVariant entity)
         {
@@ -28,11 +28,12 @@ namespace ServiceApi.Infrastructure.Repositories
                 var entities = await context.ServiceComboVariants.Where(x => x.IsVisible == true).ToListAsync();
                 await _cacheService.Updatecache(entities);
 
-                var (responseData, _) = ServiceComboVariantConversion.FromEntity(entity, null);
+                var breedMapping = await _breedMappingClient.GetBreedMappingAsync();
+                var (responseData, _) = ServiceComboVariantConversion.FromEntity(entity, null, breedMapping);
 
                 return new Response(true, 201, "Service combo variant created")
                 {
-                    Data = new { data = responseData }
+                    Data = responseData
                 };
             }
             catch (Exception ex)
@@ -54,7 +55,8 @@ namespace ServiceApi.Infrastructure.Repositories
                     return new Response(false, 404, "Service combo variant not found");
                 }
 
-                var (responseData, _) = ServiceComboVariantConversion.FromEntity(serviceComboVariant, null!);
+                var breedMapping = await _breedMappingClient.GetBreedMappingAsync();
+                var (responseData, _) = ServiceComboVariantConversion.FromEntity(serviceComboVariant, null!, breedMapping);
 
                 if (serviceComboVariant.IsVisible)
                 {
@@ -65,9 +67,11 @@ namespace ServiceApi.Infrastructure.Repositories
 
                     await _cacheService.Updatecache(combos);
 
+                    var (responseData2, _) = ServiceComboVariantConversion.FromEntity(serviceComboVariant, null!, breedMapping);
+
                     return new Response(true, 200, "Service combo variant was made hidden successfully")
                     {
-                        Data = new { data = responseData }
+                        Data = responseData2
                     };
                 }
 
@@ -141,7 +145,8 @@ namespace ServiceApi.Infrastructure.Repositories
                     return new Response(false, 404, "Service combo variants not found");
                 }
 
-                var (_, responseData) = ServiceComboVariantConversion.FromEntity(null, serviceComboVariants);
+                var breedMapping = await _breedMappingClient.GetBreedMappingAsync();
+                var (_, responseData) = ServiceComboVariantConversion.FromEntity(null, serviceComboVariants, breedMapping);
 
                 return new Response(true, 200, "Service combo variants found")
                 {
@@ -174,11 +179,12 @@ namespace ServiceApi.Infrastructure.Repositories
                 var entities = await context.ServiceComboVariants.Where(x => x.IsVisible == true).ToListAsync();
                 await _cacheService.Updatecache(entities);
 
-                var (responseData, _) = ServiceComboVariantConversion.FromEntity(serviceComboVariant, null);
+                var breedMapping = await _breedMappingClient.GetBreedMappingAsync();
+                var (responseData, _) = ServiceComboVariantConversion.FromEntity(serviceComboVariant, null, breedMapping);
 
                 return new Response(true, 200, "Service combo variant updated")
                 {
-                    Data = new { data = responseData }
+                    Data = responseData
                 };
             }
             catch (Exception ex)

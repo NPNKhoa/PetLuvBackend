@@ -26,7 +26,7 @@ namespace ServiceApi.Application.DTOs.Conversions
             ServiceCombo = null
         };
 
-        public static (ServiceComboVariantDTO?, IEnumerable<ServiceComboVariantDTO>?) FromEntity(ServiceComboVariant? serviceComboVariant, IEnumerable<ServiceComboVariant>? serviceComboVariants)
+        public static (ServiceComboVariantDTO?, IEnumerable<ServiceComboVariantDTO>?) FromEntity(ServiceComboVariant? serviceComboVariant, IEnumerable<ServiceComboVariant>? serviceComboVariants, Dictionary<Guid, string>? breedMapping = null)
         {
             if (serviceComboVariant is not null && serviceComboVariants is null)
             {
@@ -34,7 +34,7 @@ namespace ServiceApi.Application.DTOs.Conversions
                 (
                     serviceComboVariant.ServiceComboId,
                     serviceComboVariant.BreedId,
-                    string.Empty,
+                    (breedMapping != null && breedMapping.TryGetValue(serviceComboVariant.BreedId, out var name)) ? name : string.Empty,
                     serviceComboVariant.WeightRange,
                     serviceComboVariant.ComboPrice,
                     serviceComboVariant.EstimateTime,
@@ -49,7 +49,7 @@ namespace ServiceApi.Application.DTOs.Conversions
                 (
                     p.ServiceComboId,
                     p.BreedId,
-                    string.Empty,
+                    (breedMapping != null && breedMapping.TryGetValue(p.BreedId, out var name)) ? name : string.Empty,
                     p.WeightRange,
                     p.ComboPrice,
                     p.EstimateTime,
